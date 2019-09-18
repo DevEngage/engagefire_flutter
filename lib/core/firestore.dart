@@ -145,7 +145,7 @@ class EngageFirestore {
   sortListByPosition([fresh = false, reverse = false, var list]) {
     this.sortedBy = 'position';
     if (fresh) {
-      this.getListByPosition(reverse ? 'asc' : 'desc');
+      this.getListByPosition(reverse);
     } else {
       this.sortList((var x, var y) => reverse ? y.position - x.position : x.position - y.position, list);
     }
@@ -167,78 +167,6 @@ class EngageFirestore {
   /* 
     auth
    */
-
-  
-  // Future<String> getUserId() async {
-  //   if (userId != null) {
-  //     return userId;
-  //   } else if (initialized) {
-  //     return new Promise((resolve) =>
-  //       EngageFirestoreBase.ENGAGE_FIRE.auth.onAuthStateChanged((user) => {
-  //         if (user && user.uid) {
-  //           resolve(user.uid);
-  //         } else {
-  //           resolve('');
-  //         }
-  //       })
-  //     );
-  //   } else {
-  //     return Promise.resolve('');
-  //   }
-  // }
-  
-  // async login(email: string, password: string) {
-  //   return await EngageFirestore.ENGAGE_FIRE(EngageFirestore.FIRE_OPTIONS).auth.signInWithEmailAndPassword(email, password);
-  // }
-
-  // async loginSocial(service: any, method: string, scope?: any, mobile = false) {
-  //   console.log('isMobile', mobile);
-  //   let provider: any ;
-  //   switch (service) {
-  //     case 'google':
-  //       provider = new firebase.auth.GoogleAuthProvider();
-  //       break;
-  //     case 'twitter':
-  //       provider = new firebase.auth.TwitterAuthProvider();
-  //       break;
-  //     case 'facebook':
-  //       provider = new firebase.auth.FacebookAuthProvider();
-  //       break;
-  //     case 'github':
-  //       provider = new firebase.auth.GithubAuthProvider();
-  //       break;
-  //     default:
-  //       provider = new firebase.auth.GoogleAuthProvider();
-  //   }
-
-  //   if (provider) provider.addScope(scope);
-
-  //   if (method === 'popup') {
-  //     return await EngageFirestore.ENGAGE_FIRE(EngageFirestore.FIRE_OPTIONS).auth.signInWithPopup(provider);
-  //   } else {
-  //     return await EngageFirestore.ENGAGE_FIRE(EngageFirestore.FIRE_OPTIONS).auth.signInWithRedirect(provider);
-  //   }
-  // }
-
-  // async signup(email: string, password: string) {
-  //   return await EngageFirestore.ENGAGE_FIRE(EngageFirestore.FIRE_OPTIONS).auth.createUserWithEmailAndPassword(email, password);
-  // }
-
-  // async logout() {
-  //   return await EngageFirestore.ENGAGE_FIRE(EngageFirestore.FIRE_OPTIONS).auth.signOut();
-  // }
-
-  // async sendEmailVerification() {
-  //   return await (<any>EngageFirestore.ENGAGE_FIRE(EngageFirestore.FIRE_OPTIONS).auth).sendEmailVerification();
-  // }
-
-  // async forgotPassword(email: string) {
-  //   return await EngageFirestore.ENGAGE_FIRE(EngageFirestore.FIRE_OPTIONS).auth.sendPasswordResetEmail(email);
-  // }
-
-  // async updatePassword(newPassword: any) {
-  //   return await (<any>EngageFirestore.ENGAGE_FIRE(EngageFirestore.FIRE_OPTIONS).auth).updatePassword(newPassword);
-  // }
 
   Future<FirebaseUser> get getUser => _auth.currentUser();
   Future<String> get getUserId async => (await getUser).uid;
@@ -283,6 +211,17 @@ class EngageFirestore {
     }
     try {
       var user = await _auth.createUserWithEmailAndPassword(email: email.trim(), password: password.trim());
+      await updateUserData(user);
+      return user;
+    } catch (error) {
+      print(error);
+      return null;
+    }
+  }
+
+  Future<FirebaseUser> emailLinkSignIn({String email, String link}) async {
+    try {
+      var user = await _auth.signInWithEmailAndLink(email: email.trim(), link: link);
       await updateUserData(user);
       return user;
     } catch (error) {
@@ -342,6 +281,34 @@ class EngageFirestore {
   Future<void> getProfile() async {
     var user = await getUser;
     return EngageFirestore.getInstance('profile').get(user.uid);
+  }
+
+    Future<void> forgotPassword(String email) async {
+    return _auth.sendPasswordResetEmail(email: email);
+  }
+
+  Future<void> emailSignInMethods(String email) async {
+    return _auth.fetchSignInMethodsForEmail(email: email);
+  }
+
+  Future<void> verifyPhoneNumber({
+    String phoneNumber,
+    Duration timeout,
+    int forceResendingToken,
+    PhoneVerificationCompleted verificationCompleted,
+    PhoneVerificationFailed verificationFailed,
+    PhoneCodeSent codeSent,
+    PhoneCodeAutoRetrievalTimeout codeAutoRetrievalTimeout,
+  }) async {
+    return _auth.verifyPhoneNumber({
+      phoneNumber,
+      timeout,
+      forceResendingToken,
+      verificationCompleted,
+      verificationFailed,
+      codeSent,
+      codeAutoRetrievalTimeout,
+    });
   }
 
   Future<void> signOut() {
