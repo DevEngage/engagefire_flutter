@@ -2,6 +2,7 @@ import 'package:engagefire/core/doc.dart';
 import 'package:engagefire/core/pubsub.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'omittedList.dart';
 
 /*
@@ -36,6 +37,14 @@ class EngageFirestore {
   bool $loading = true;
   bool debug = false;
   String path = '';
+
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: [
+      'email',
+      'profile',
+      'https://www.googleapis.com/auth/contacts.readonly',
+    ],
+  );
 
   EngageFirestore(String path) {
     path = path;
@@ -210,39 +219,24 @@ class EngageFirestore {
   //   return await (<any>EngageFirestore.ENGAGE_FIRE(EngageFirestore.FIRE_OPTIONS).auth).updatePassword(newPassword);
   // }
 
-
-
-
-
-
-
-
-
   Future<FirebaseUser> get getUser => _auth.currentUser();
+  Future<String> get getUserId async => (await getUser).uid;
 
   Stream<FirebaseUser> get user => _auth.onAuthStateChanged;
 
   Future<FirebaseUser> googleSignIn() async {
-    final GoogleSignIn _googleSignIn = GoogleSignIn(
-      scopes: [
-        'email',
-        'profile'
-        'https://www.googleapis.com/auth/contacts.readonly',
-      ],
-    );
-
     try {
-      GoogleSignInAccount googleSignInAccount = await _googleSignIn.signIn();
-      GoogleSignInAuthentication googleAuth =
+      var googleSignInAccount = await _googleSignIn.signIn();
+      var googleAuth =
           await googleSignInAccount.authentication;
 
-      final AuthCredential credential = GoogleAuthProvider.getCredential(
+      final credential = GoogleAuthProvider.getCredential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      FirebaseUser user = await _auth.signInWithCredential(credential);
-      updateUserData(user);
+      var user = await _auth.signInWithCredential(credential);
+      await updateUserData(user);
 
       return user;
     } catch (error) {
@@ -253,8 +247,8 @@ class EngageFirestore {
 
   Future<FirebaseUser> emailSignIn({String email, String password}) async {
     try {
-      FirebaseUser user = await _auth.signInWithEmailAndPassword(email: email.trim(), password: password.trim());
-      updateUserData(user);
+      var user = await _auth.signInWithEmailAndPassword(email: email.trim(), password: password.trim());
+      await updateUserData(user);
       return user;
     } catch (error) {
       print(error);
@@ -267,8 +261,8 @@ class EngageFirestore {
       return null;
     }
     try {
-      FirebaseUser user = await _auth.createUserWithEmailAndPassword(email: email.trim(), password: password.trim());
-      updateUserData(user);
+      var user = await _auth.createUserWithEmailAndPassword(email: email.trim(), password: password.trim());
+      await updateUserData(user);
       return user;
     } catch (error) {
       print(error);
@@ -298,13 +292,13 @@ class EngageFirestore {
   // }
 
   Future<FirebaseUser> anonLogin() async {
-    FirebaseUser user = await _auth.signInAnonymously();
-    updateUserData(user);
+    var user = await _auth.signInAnonymously();
+    await updateUserData(user);
     return user;
   }
 
   Future<void> updateUserData(FirebaseUser user) {
-    DocumentReference reportRef = _db.collection('reports').document(user.uid);
+    var reportRef = _db.collection('reports').document(user.uid);
 
     return reportRef.setData({
       'uid': user.uid,
@@ -314,8 +308,8 @@ class EngageFirestore {
   }
 
   Future<void> updateProfile({firstName, lastName, email}) async {
-    FirebaseUser user = await getUser;
-    DocumentReference reportRef = _db.collection('profile').document(user.uid);
+    var user = await getUser;
+    DocumentReference reportRef = EngageFirestore.getInstance('profile').get(user.uid);
 
     return reportRef.setData({
       'firstName': firstName, 
@@ -327,11 +321,8 @@ class EngageFirestore {
   }
 
   Future<void> getProfile() async {
-    FirebaseUser user = await getUser;
-    DocumentReference ref = _db.collection('profile').document(user.uid);
-
-    return ref.get();
-
+    var user = await getUser;
+    return EngageFirestore.getInstance('profile').get(user.uid);
   }
 
   Future<void> signOut() {
