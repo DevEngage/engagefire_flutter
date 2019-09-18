@@ -110,15 +110,29 @@ class EngageFirestore {
     return this;
   }
 
-  Future<void> getList([CollectionReference ref]) async {
+  Future<List> getList([CollectionReference listRef]) async {
     $loading = true;
-    // DatabaseReference ref = ref ?? db;
-    // this.$loading = true;
-    // if (!ref) ref = this.ref;
-    // const list = await ref.get();
-    // this.list = this.addFireList(list);
-    // this.$loading = false;
-    // return this.list;
+    listRef ??= ref;
+    const list = await listRef.get();
+    this.list = this.addFireList(list);
+    this.$loading = false;
+    return this.list;
+  }
+
+  Future<List> addFireList(collection: any) async {
+    list = [];
+    if (collection && collection.size) {
+      collection.forEach((DocumentSnapshot doc) => doc.exists ? list.add(this.addFire(doc.data, doc.documentID)) : null);
+    }
+    return list;
+  }
+
+  addFire(data, String id) {
+    if (EngageDoc != null) {
+      data.$id = id;
+      return EngageDoc(data, path, subCollections);
+    }
+    return data;
   }
 
   /* 
@@ -141,6 +155,13 @@ class EngageFirestore {
   Future getListByPosition([bool direction = false]) async {
     var ref = this.ref.orderBy('position', descending: direction);
     return this.getList(ref);
+  }
+
+  save() {
+    reportRef.setData({
+      'userid': user.uid,
+      'lastActivity': DateTime.now()
+    }, merge: true);
   }
 
   /* 
@@ -298,12 +319,10 @@ class EngageFirestore {
   }
 
   Future<void> updateUserData(FirebaseUser user) {
-    var reportRef = _db.collection('reports').document(user.uid);
-
-    return reportRef.setData({
-      'uid': user.uid,
+    return EngageFirestore.getInstance('reports').save({
+      '\$id': user.uid,
       'lastActivity': DateTime.now()
-    }, merge: true);
+    });
 
   }
 

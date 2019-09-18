@@ -40,4 +40,9 @@ List<String> OMIT_LIST = [
     '\$swapPosition',
     '\$changeId',
     '\$getModel',
+    '\$addRelationToDoc',
+    '\$getDocRelations',
+    '\$addReference',
+    '\$getReferences',
+    '\$getPath',
   ];
