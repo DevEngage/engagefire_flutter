@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:engagefire/core/doc.dart';
 import 'package:engagefire/core/pubsub.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -11,6 +13,7 @@ import 'omittedList.dart';
  * [X] Handle file uploads better
  * [X] Add types (models) to doc in class
  * [X] Change doc methods to doc prototype methods. Maybe make a class?
+ * [ ] Test listen
  * [ ] Implement State Manage,
  * [ ] Create query system that can save query models
  * [ ] Fully test everything!
@@ -84,10 +87,6 @@ class EngageFirestore {
     return EngageFirestore.instances[path];
   }
 
-  publish(var data, String what) {
-    return this._ps.publish(data, what);
-  }
-
   Future<List> getModelFromDb() async {
     if (path.contains('\$collections')) {
       return this.model = [];
@@ -113,16 +112,17 @@ class EngageFirestore {
   Future<List> getList([CollectionReference listRef]) async {
     $loading = true;
     listRef ??= ref;
-    const list = await listRef.get();
-    this.list = this.addFireList(list);
-    this.$loading = false;
-    return this.list;
+    QuerySnapshot collection;
+    collection = await listRef.getDocuments();
+    list = await this.addFireList(collection);
+    $loading = false;
+    return list;
   }
 
-  Future<List> addFireList(collection: any) async {
+  Future<List> addFireList(QuerySnapshot collection) async {
     list = [];
-    if (collection && collection.size) {
-      collection.forEach((DocumentSnapshot doc) => doc.exists ? list.add(this.addFire(doc.data, doc.documentID)) : null);
+    if (collection != null && collection.documents.length != null) {
+      collection.documents.map((DocumentSnapshot doc) => doc.exists ? list.add(this.addFire(doc.data, doc.documentID)) : null);
     }
     return list;
   }
@@ -133,6 +133,60 @@ class EngageFirestore {
       return EngageDoc(data, path, subCollections);
     }
     return data;
+  }
+
+  omitFireList(List list) {
+    return list.map(this.omitFire);
+  }
+
+  omitFire(Map<String, dynamic> payload) {
+    if (payload != null && payload['\$omitList'] != null) {
+      omitList.map((item) => payload.remove(item));
+    }
+    omitList.map((item) => payload.remove(item));
+
+    return payload.map(omitDepth);
+  }
+  
+  MapEntry<dynamic, dynamic> omitDepth(dynamic value, dynamic index) {
+    if (value is List) {
+      value = value.map((item) => item is Map ? this.omitFire(item) : null);
+    }
+    if (value is Map) {
+      value = this.omitFire(value);
+      value = value.map((item) => item is Map<dynamic, dynamic> ? this.omitFire(item) : null);
+      if (value != null && value['\&id']) {
+        value = { 
+          '\$id': value['\&id'], 
+          '\$collection': value['\&collection'],
+          '\$collection': value['\&collection'],
+          '\$image': value['\&image'],
+          'name': value['\&name'] ?? '', 
+        };
+      }
+    }
+    return value;
+  }
+
+  addSubCollections(List<String> collections) {
+    this.subCollections = [...this.subCollections, ...collections];
+    return this;
+  }
+
+  toggleDebug() {
+    this.debug = !this.debug;
+  }
+
+  canSub() {
+    return _ps != null;
+  }
+
+  publish(var data, String what) {
+    return this._ps.publish(data, what);
+  }
+
+  subscribe(String what, listener) {
+    return _ps.subscribe(what, listener);
   }
 
   /* 
@@ -157,11 +211,153 @@ class EngageFirestore {
     return this.getList(ref);
   }
 
-  save() {
-    reportRef.setData({
-      'userid': user.uid,
-      'lastActivity': DateTime.now()
-    }, merge: true);
+  /* DOC AND LIST */
+
+  Future<dynamic> getChildDocs(Map doc) async {
+    return doc.map((item, key) => 
+      item != null && item['\$id'] != null && item['\$collection'] != null ? EngageFirestore.getInstance("$item['\$collection']/$item['\$id']") : null 
+    );
+  }
+
+   Future<dynamic> getWithChildern(docId, [CollectionReference listRef]) async {
+    var doc = await get(docId, listRef);
+    if (doc) {
+      doc = await this.getChildDocs(doc);
+    }
+    return doc;
+  }
+
+  Future<dynamic> get(docId, [CollectionReference listRef]) async {
+    $loading = true;
+    listRef ??= ref;
+    try {
+      DocumentSnapshot doc;
+      doc = await listRef.document(docId).get();
+      this.$loading = false;
+      if (doc.exists) {
+        dynamic fireDoc = this.addFire(doc.data, docId);
+        num index = this.list.indexOf(fireDoc);
+        if (index > -1) this.list[index] = fireDoc;
+        else this.list.add(fireDoc);
+        return fireDoc;
+      }
+      return null;
+    } catch (error) {
+      print(error);
+      return null;
+    }
+  }
+
+  Future<dynamic> add(dynamic newDoc, dynamic docRef) async {
+    newDoc.$loading = true;
+    docRef ??= ref;
+    if (newDoc != null && (newDoc.$key != null || newDoc.$id != null)) {
+      newDoc.$loading = false;
+      return this.update(newDoc, docRef);
+    }
+    if (debug) {
+      print('add');
+      print(newDoc);
+    }
+    newDoc = this.omitFire(newDoc);
+    DocumentReference blank = docRef.document();
+    await blank.setData(newDoc);
+    return this.addFire(newDoc, blank.documentID);
+  }
+
+  Future<dynamic> setDoc(dynamic newDoc, dynamic docRef) async {
+    newDoc.$loading = true;
+    if (debug) {
+      print('set');
+      print(newDoc);
+    }
+    newDoc = omitFire(newDoc);
+    await docRef.setData(newDoc);
+    return addFire(newDoc, docRef.id);
+  }
+
+  Future<dynamic> setWithId(String id, dynamic newDoc) async {
+    return setDoc(newDoc, ref.document(id));
+  }
+
+  Future<dynamic> update(dynamic doc, dynamic docRef) async {
+    doc.$loading = true;
+    docRef ??= ref;
+    DocumentReference documentRef;
+    if (doc.$id) {
+      documentRef = docRef.document(doc.$id);
+      doc.$loading = false;
+      if (!(await documentRef.get()).exists) return setDoc(doc, documentRef);
+    } else if (doc.$key) {
+      documentRef = docRef.document(doc.$key);
+      doc.$loading = false;
+      if (!(await documentRef.get()).exists) return setDoc(doc, documentRef);
+    } else if (docRef.id == null) {
+      doc.$loading = false;
+      print('no id');
+    }
+    if (debug) {
+      print('updated');
+      print(doc);
+    }
+    doc = omitFire(doc);
+    await documentRef.updateData(doc);
+    return addFire(doc, documentRef.documentID);
+  }
+
+  Future<dynamic> save(newDoc, [CollectionReference listRef]) async {
+    newDoc = omitFire(newDoc);
+    newDoc.$updatedAt = DateTime.now().millisecondsSinceEpoch;
+    dynamic doc;
+    try {
+      if (newDoc != null && (newDoc.$key != null || newDoc.$id != null)) {
+        doc = await update(newDoc, listRef);
+      } else if (listRef != null && listRef.id != null) {
+        newDoc.$createdAt = DateTime.now().millisecondsSinceEpoch;
+        newDoc.$timezoneOffset = DateTime.now().timeZoneOffset;
+        doc = await setDoc(newDoc, listRef);
+      } else {
+        newDoc.$createdAt = DateTime.now().millisecondsSinceEpoch;
+        newDoc.$timezoneOffset = DateTime.now().timeZoneOffset;
+        doc = await add(newDoc, listRef);
+        list = [...list, doc];
+      }
+    } catch (error) {
+      print(error);
+
+    }
+    doc.$loading = false;
+    return doc;
+  }
+
+  remove(String id, [CollectionReference listRef]) {
+    listRef ??= ref;
+    if (debug) print('removing: $id');
+    return listRef.document(id).delete();
+  }
+
+  watch(String id, cb, [CollectionReference listRef]) {
+    listRef ??= ref;
+    listRef
+      .document(id)
+      .snapshots()
+      .listen((doc) => doc.exists ? cb(addFire(doc.data, doc.documentID), doc) : cb(null, doc));
+  }
+
+  watchList(cb, [CollectionReference listRef]) {
+    listRef ??= ref;
+    listRef
+      .snapshots()
+      .listen((snapshot) => cb is List ? cb = addFireList(snapshot) : cb(addFireList(snapshot)));
+  }
+
+
+  Stream listen(cb, [CollectionReference listRef]) {
+    listRef ??= ref;
+    var transformer = StreamTransformer.fromHandlers(handleData: (value, sink) {
+      value = addFireList(value);
+    });
+    return listRef.snapshots().transform(transformer);
   }
 
   /* 
@@ -300,15 +496,15 @@ class EngageFirestore {
     PhoneCodeSent codeSent,
     PhoneCodeAutoRetrievalTimeout codeAutoRetrievalTimeout,
   }) async {
-    return _auth.verifyPhoneNumber({
-      phoneNumber,
-      timeout,
-      forceResendingToken,
-      verificationCompleted,
-      verificationFailed,
-      codeSent,
-      codeAutoRetrievalTimeout,
-    });
+    return _auth.verifyPhoneNumber(
+      phoneNumber: phoneNumber,
+      timeout: timeout,
+      forceResendingToken: forceResendingToken,
+      verificationCompleted: verificationCompleted,
+      verificationFailed: verificationFailed,
+      codeSent: codeSent,
+      codeAutoRetrievalTimeout: codeAutoRetrievalTimeout,
+    );
   }
 
   Future<void> signOut() {
