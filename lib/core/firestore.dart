@@ -95,6 +95,10 @@ class EngageFirestore {
     await this.sortModel();
     return this.model;
   }
+
+  List getModel() {
+    return this.model;
+  }
   
   Future sortModel() async {
     this.sortListByPosition(false, false, this.model);
@@ -130,7 +134,7 @@ class EngageFirestore {
   addFire(data, String id) {
     if (EngageDoc != null) {
       data.$id = id;
-      return EngageDoc(data, path, subCollections);
+      return EngageDoc(data: data, path: path, subCollections: subCollections);
     }
     return data;
   }
@@ -211,6 +215,15 @@ class EngageFirestore {
     return this.getList(ref);
   }
 
+  Future buildListPositions() async {
+    await this.getList();
+    print('Started Building positions...');
+    this.sortListByPosition();
+    var index = 0;
+    this.list.map((item) async => await item.$setPosition(index++));
+    print('Finished Building positions...');
+  }
+
   /* DOC AND LIST */
 
   Future<dynamic> getChildDocs(Map doc) async {
@@ -265,7 +278,7 @@ class EngageFirestore {
     return this.addFire(newDoc, blank.documentID);
   }
 
-  Future<dynamic> setDoc(dynamic newDoc, dynamic docRef) async {
+  Future<dynamic> setDoc(dynamic newDoc, [dynamic docRef]) async {
     newDoc.$loading = true;
     if (debug) {
       print('set');
@@ -276,11 +289,11 @@ class EngageFirestore {
     return addFire(newDoc, docRef.id);
   }
 
-  Future<dynamic> setWithId(String id, dynamic newDoc) async {
+  Future<dynamic> setWithId(String id, [dynamic newDoc]) async {
     return setDoc(newDoc, ref.document(id));
   }
 
-  Future<dynamic> update(dynamic doc, dynamic docRef) async {
+  Future<dynamic> update(dynamic doc, [dynamic docRef]) async {
     doc.$loading = true;
     docRef ??= ref;
     DocumentReference documentRef;
@@ -509,6 +522,72 @@ class EngageFirestore {
 
   Future<void> signOut() {
     return _auth.signOut();
+  }
+
+  /*
+   * UTILITIES
+   */
+
+  Future replaceId(String oldId, newId, [ref]) async {
+    ref ??= this.ref;
+    Map data;
+    data = await this.get(oldId, ref);
+    if (data == null) {
+      print('cant find record for: $oldId');
+      return 'cant find record';
+    }
+    data = this.addFire(data, newId);
+    await this.save(data);
+    return await this.remove(oldId, ref);
+  }
+
+  Future replaceIdOnCollection(String oldId, newId, [subRef]) async {
+    subRef ??= this.ref;
+    Map data;
+    data = await this.get(oldId, subRef);
+    if (data == null) {
+      print('cant find record for: $oldId');
+      return 'cant find record';
+    }
+    data = this.addFire(data, newId);
+    await this.save(data, subRef);
+    return await this.remove(oldId, subRef);
+  }
+  
+  Future moveRecord(oldPath, newPath) async {
+    if (this._db == null) return null;
+    DocumentSnapshot data;
+    data = await this._db.document(oldPath).get();
+    Map record = data.data;
+    print('record move $record');
+    await this._db.document(newPath).setData(record);
+    return this._db.document(oldPath).delete();
+  }
+
+  Future copyRecord(oldPath, newPath, [updateTimestamp = false]) async {
+    if (this._db == null) return null;
+    DocumentSnapshot data;
+    data = await this._db.document(oldPath).get();
+    Map record = data.data;
+    if (updateTimestamp) record['\$updatedAt'] = DateTime.now().millisecondsSinceEpoch;
+    print('record move $record');
+    return this._db.document(newPath).setData(record);
+  }
+
+  Future backupDoc(doc, [deep = true, backupPath = '_backups']) async {
+    print('deep: $deep');
+    var timestamp = DateTime.now().millisecondsSinceEpoch;
+    if (doc == null) return 'Missing Doc';
+    var ef = EngageFirestore.getInstance("$backupPath/$timestamp/$doc['\$path']");
+    doc.$backupAt = timestamp;
+    await doc.$save();
+    return await ef.save({
+      ...doc,
+      '\$updatedAt': timestamp
+    });
+    // if (deep) {
+    //   return await doc.$subCollections.map(collection = this.backupCollection()
+    // }
   }
 
 }

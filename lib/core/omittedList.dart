@@ -46,4 +46,5 @@ List<String> OMIT_LIST = [
     '\$getReferences',
     '\$getPath',
     '\$listen',
+    '\$setPosition',
   ];
