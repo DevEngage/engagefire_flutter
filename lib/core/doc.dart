@@ -1,6 +1,7 @@
 
 
 import 'package:engagefire/core/firestore.dart';
+import 'dart:collection';
 
 class EngageDoc {
   static Map<String, EngageDoc> instances = {};
@@ -180,40 +181,40 @@ class EngageDoc {
     this.$$updateDoc();
   }
 
-  // Future $swapPosition(x, y, [List list]) async {
-  //   list = list ?? this.$$getSortedParentList();
-  //   if (list.((item) => item.position == null)) {
-  //     await this.$engageFireStore.buildListPositions();
-  //   }
-  //   const itemX = list[x];
-  //   const itemY = list[y];
-  //   const itemXPos = itemX.position || x + 1;
-  //   const itemYPos = itemY.position || y + 1;
-  //   itemX.position = itemYPos;
-  //   itemY.position = itemXPos;
-  //   this.$engageFireStore.list[y] = itemX;
-  //   this.$engageFireStore.list[x] = itemY;
-  //   await itemX.$save();
-  //   await itemY.$save();
-  // }
+  Future $swapPosition(x, y, [List list]) async {
+    list = list ?? this.$$getSortedParentList();
+    if (list.every((item) => item.position != null)) {
+      await this.$engageFireStore.buildListPositions();
+    }
+    var itemX = list[x];
+    var itemY = list[y];
+    var itemXPos = itemX.position || x + 1;
+    var itemYPos = itemY.position || y + 1;
+    itemX.position = itemYPos;
+    itemY.position = itemXPos;
+    this.$engageFireStore.list[y] = itemX;
+    this.$engageFireStore.list[x] = itemY;
+    await itemX.$save();
+    await itemY.$save();
+  }
 
-  // Future $moveUp() async {
-  //   var list = $$getSortedParentList();
-  //   int index = list.findIndex((item) => item.position == this.position);
-  //   if (index <= 0) {
-  //     return;
-  //   }
-  //   await this.$swapPosition(index, index-1, list);
-  // }
+  Future $moveUp() async {
+    var list = $$getSortedParentList();
+    int index = list.findIndex((item) => item.position == this.position);
+    if (index <= 0) {
+      return;
+    }
+    await this.$swapPosition(index, index-1, list);
+  }
 
-  // Future $moveDown() async {
-  //   var list = $$getSortedParentList();
-  //   int index = list.findIndex((item) => item.position == this.position);
-  //   if (index >= list.length - 1) {
-  //     return;
-  //   }
-  //   await this.$swapPosition(index, index + 1, list);
-  // }
+  Future $moveDown() async {
+    var list = $$getSortedParentList();
+    int index = list.findIndex((item) => item.position == this.position);
+    if (index >= list.length - 1) {
+      return;
+    }
+    await this.$swapPosition(index, index + 1, list);
+  }
 
   Future $setPosition(index) {
     $doc['position'] = index;
@@ -225,14 +226,7 @@ class EngageDoc {
     return this.$engageFireStore.sortListByPosition().list;
   }
 
-  // $$difference(Map object, base) {
-  //   changes(Map object, base) {
-  //     return object.transform(object, (result, value, key) => {
-  //       if (value != base[key]) {
-  //         result[key] = value is Map && base[key] is Map ? changes(value, base[key]) : value;
-  //       }
-  //     });
-  //   }
-  //   return changes(object, base);
-  // }
+  $$difference(Map object, base) {
+    return object == base;
+  }
 }

@@ -47,4 +47,5 @@ List<String> OMIT_LIST = [
     '\$getPath',
     '\$listen',
     '\$setPosition',
+    '\$buildCollections',
   ];

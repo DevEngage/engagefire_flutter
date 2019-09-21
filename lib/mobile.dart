@@ -5,4 +5,4 @@
 library engage_mobile;
 
 
-export 'mobile/firestore.dart';
+export 'core/firestore.dart';
