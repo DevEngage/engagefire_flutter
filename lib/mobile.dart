@@ -5,4 +5,9 @@
 library engage_mobile;
 
 
+export 'core/ads.dart';
+export 'core/doc.dart';
+export 'core/engagefire.dart';
+export 'core/files.dart';
 export 'core/firestore.dart';
+export 'core/pubsub.dart';

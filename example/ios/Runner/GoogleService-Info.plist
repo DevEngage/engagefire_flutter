@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>255779484097-v4uh0avjhdlkm9f41aprtkprq3siloir.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.255779484097-v4uh0avjhdlkm9f41aprtkprq3siloir</string>
+	<key>API_KEY</key>
+	<string>AIzaSyA6pRVM1_GgxnsRRsgHJuQoB0JdXmlkev8</string>
+	<key>GCM_SENDER_ID</key>
+	<string>255779484097</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.DevEngage.engagefire</string>
+	<key>PROJECT_ID</key>
+	<string>engage-firebase</string>
+	<key>STORAGE_BUCKET</key>
+	<string>engage-firebase.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:255779484097:ios:39fd46c8f3dd17bb607f40</string>
+	<key>DATABASE_URL</key>
+	<string>https://engage-firebase.firebaseio.com</string>
+</dict>
+</plist>
