@@ -3,19 +3,14 @@
 * [ ] Finish localstorage integration
 * */
 class EngagePubsub {
+  static var RETAIN = false;
+  static var ID = 'EngageData';
   static var app;
   static var storage;
   static var ads;
   static EngagePubsub instance;
   Map<String, List> listeners = {};
   var data = {};
-
-  EngagePubsub( [bool localStorage, bool retain, String id = 'EngageData'] ) {
-    // print('Local Storage Enabled: ' + localStorage);
-    // if (retain == true) {
-    //   this.data = JSON.parse(this.storage.getItem(this.id)) || {};
-    // }
-  }
 
   static init({app, storage, ads}) {
     EngagePubsub.app = app;
@@ -64,10 +59,7 @@ class EngagePubsub {
   }
 
   static getInstance() {
-    if (EngagePubsub.instance == null)  {
-      EngagePubsub.instance = new EngagePubsub();
-    }
-    return EngagePubsub.instance;
+    return EngagePubsub.instance ??= EngagePubsub();
   }
 }
 

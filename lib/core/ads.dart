@@ -1,74 +1,81 @@
 
-import 'package:firebase_admob/firebase_admob.dart';
 
 /* 
   TODO:
   [ ] pull targtingInfo from user profile
  */
+import 'package:engagefire/core/pubsub.dart';
+
 class EngageAds {
+  static var ADS_SERVICE;
   static var APP_ID;
-  static var ADMOD;
   static var AD_UNIT_ID;
-  var adUnitId;
-  MobileAdTargetingInfo targetingInfo;
-  BannerAd myBanner;
-  InterstitialAd myInterstitial;
+  static List KEYWORDS;
+  static String CONTENT_URL;
+  static List TEST_DEVICES;
+  static EngageAds instance;
+  var adsInstance;
 
-  EngageAds({this.adUnitId, initialTargetData}) {
-    if (initialTargetData) setTargetData();
-  }
+  static init({
+    dynamic Ads, 
+    appId,
+    bannerUnitId,
+    screenUnitId,
+    videoUnitId,
 
-  static init({appId, adUnitId, initialTargetData = true}) async {
-    EngageAds.AD_UNIT_ID = adUnitId;
-    EngageAds.APP_ID = appId;
-    return EngageAds.ADMOD ??= await FirebaseAdMob.instance.initialize(appId: appId ?? EngageAds.APP_ID);
-  }
+    keywords,
+    contentUrl,
+    childDirected,
+    testDevices,
+    testing,
+  }) async {
+    if (Ads != null) {
+      EngageAds.ADS_SERVICE = Ads;
+    }
+    EngageAds.AD_UNIT_ID = appId;
 
-  setTargetData({List<String> keywords, contentUrl, birthday, childDirected = false, designedForFamilies = false, MobileAdGender gender }) {
-    targetingInfo = MobileAdTargetingInfo(
-      keywords: keywords,
-      contentUrl: contentUrl,
-      birthday: birthday,
-      childDirected: childDirected,
-      designedForFamilies: designedForFamilies,
-      gender: gender, // or MobileAdGender.female, MobileAdGender.unknown
-      testDevices: <String>[], // Android emulators are considered test devices
+    return EngageAds.getInstance().adsInstance ??= EngageAds.ADS_SERVICE(
+      appId,
+      bannerUnitId: bannerUnitId,
+      screenUnitId: screenUnitId,
+      screenUnitId: videoUnitId,
+      keywords: keywords ?? EngageAds.KEYWORDS,
+      contentUrl: contentUrl ?? EngageAds.CONTENT_URL,
+      childDirected: childDirected ?? false,
+      testDevices: testDevices ?? EngageAds.TEST_DEVICES,
+      testing: testing ?? false,
+      listener: (event) => engagePubsub.publish(event, 'engage_ads'),
     );
   }
 
-  setBanner() {
-    myBanner = BannerAd(
-      // Replace the testAdUnitId with an ad unit id from the AdMob dash.
-      // https://developers.google.com/admob/android/test-ads
-      // https://developers.google.com/admob/ios/test-ads
-      adUnitId: adUnitId ?? EngageAds.AD_UNIT_ID ?? BannerAd.testAdUnitId,
-      size: AdSize.smartBanner,
-      targetingInfo: targetingInfo,
-      listener: (MobileAdEvent event) {
-        print("BannerAd event is $event");
-      },
-    );
+  showBannerAd({state, anchorOffset}) {
+    return adsInstance.showBannerAd(state: state, anchorOffset: anchorOffset);
   }
 
-  setInterstitial() {
-    myInterstitial = InterstitialAd(
-      // Replace the testAdUnitId with an ad unit id from the AdMob dash.
-      // https://developers.google.com/admob/android/test-ads
-      // https://developers.google.com/admob/ios/test-ads
-      adUnitId: adUnitId ?? EngageAds.AD_UNIT_ID ?? InterstitialAd.testAdUnitId,
-      targetingInfo: targetingInfo,
-      listener: (MobileAdEvent event) {
-        print("InterstitialAd event is $event");
-      },
-    );
+  hideBannerAd() {
+    return adsInstance.hideBannerAd();
   }
 
-  setRewardVideo() {
-    RewardedVideoAd.instance.load(adUnitId: adUnitId, targetingInfo: targetingInfo);
+  showFullScreenAd({state}) {
+    return adsInstance.showFullScreenAd(state: state);
   }
 
-  showRewardVideo() {
-    RewardedVideoAd.instance.show();
+  hideFullScreenAd() {
+    return adsInstance.hideFullScreenAd();
+  }
+
+  showVideoAd({state}) {
+    return adsInstance.showVideoAd(state: state);
+  }
+
+  hideVideoAd() {
+    return adsInstance.hideVideoAd();
+  }
+
+  static getInstance() {
+    return EngagePubsub.instance ??= EngagePubsub();
   }
 
 }
+
+var engageAds = EngageAds.getInstance();

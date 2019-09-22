@@ -12,7 +12,7 @@ class EngageFire {
   static Map _options;
   static FirebaseApp _app;
   static FirebaseStorage _storage;
-  static FirebaseAdMob _ads;
+  static var _ads;
 
   EngageFire() {}
 
@@ -27,8 +27,22 @@ class EngageFire {
     String storageBucket,
     bool enableStorage = true,
     // ads
-    String admobId,
-    String adUnitId,
+    dynamic Ads,
+    String androidAdAppId,
+    String iosAdAppId,
+    String androidBannerUnitId,
+    String iosBannerUnitId,
+    String androidScreenUnitId,
+    String iosScreenUnitId,
+    String androidVideoUnitId,
+    String iosVideoUnitId,
+
+    List keywords,
+    List testDevices,
+    bool testing,
+    String childDirected,
+    String contentUrl,
+
   }) async {
     var appId = Platform.isIOS ? iosGoogleAppID : androidGoogleAppID;
     EngageFire._options = {
@@ -52,8 +66,20 @@ class EngageFire {
     if (enableStorage) {
       EngageFire._storage = await EngageFiles.init(storageBucket ?? '$projectID.appspot.com', EngageFire._app);
     }
-    if (admobId != null) {
-      EngageFire._ads = await EngageAds.init(appId: admobId, adUnitId: adUnitId);
+    if (Ads != null) {
+      EngageFire._ads = await EngageAds.init(
+        Ads: Ads, 
+        appId: Platform.isIOS ? iosAdAppId : androidAdAppId,
+        bannerUnitId: Platform.isIOS ? iosBannerUnitId : androidBannerUnitId,
+        screenUnitId: Platform.isIOS ? iosScreenUnitId : androidScreenUnitId,
+        videoUnitId: Platform.isIOS ? iosVideoUnitId : androidVideoUnitId,
+
+        keywords: keywords,
+        testDevices: testDevices,
+        contentUrl: contentUrl,
+        childDirected: childDirected,
+        testing:testing,
+      );
     }
     EngagePubsub.init(app: _app, storage: _storage, ads: _ads);
     return EngageFire._app;
