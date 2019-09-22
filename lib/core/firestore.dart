@@ -394,9 +394,10 @@ class EngageFirestore {
       );
 
       var user = await _auth.signInWithCredential(credential);
-      await updateUserData(user);
+      
+      await updateUserData(user.user);
 
-      return user;
+      return user.user;
     } catch (error) {
       print(error);
       return null;
@@ -406,8 +407,8 @@ class EngageFirestore {
   Future<FirebaseUser> emailSignIn({String email, String password}) async {
     try {
       var user = await _auth.signInWithEmailAndPassword(email: email.trim(), password: password.trim());
-      await updateUserData(user);
-      return user;
+      await updateUserData(user.user);
+      return user.user;
     } catch (error) {
       print(error);
       return null;
@@ -420,8 +421,8 @@ class EngageFirestore {
     }
     try {
       var user = await _auth.createUserWithEmailAndPassword(email: email.trim(), password: password.trim());
-      await updateUserData(user);
-      return user;
+      await updateUserData(user.user);
+      return user.user;
     } catch (error) {
       print(error);
       return null;
@@ -431,8 +432,8 @@ class EngageFirestore {
   Future<FirebaseUser> emailLinkSignIn({String email, String link}) async {
     try {
       var user = await _auth.signInWithEmailAndLink(email: email.trim(), link: link);
-      await updateUserData(user);
-      return user;
+      await updateUserData(user.user);
+      return user.user;
     } catch (error) {
       print(error);
       return null;
@@ -462,8 +463,8 @@ class EngageFirestore {
 
   Future<FirebaseUser> anonLogin() async {
     var user = await _auth.signInAnonymously();
-    await updateUserData(user);
-    return user;
+    await updateUserData(user.user);
+    return user.user;
   }
 
   Future<void> updateUserData(FirebaseUser user) {
