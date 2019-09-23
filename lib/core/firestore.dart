@@ -142,7 +142,7 @@ class EngageFirestore {
     return list.map(this.omitFire);
   }
 
-  omitFire(Map<String, dynamic> payload) {
+  omitFire(dynamic payload) {
     if (payload != null && payload['\$omitList'] != null) {
       omitList.forEach((item) => payload.remove(item));
     }

@@ -79,9 +79,10 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _incrementCounter() async {
-    dynamic doc = await tests.get('test_counter') ?? {};
-    doc.$doc.counter++;
-    doc.$save();
+    EngageDoc doc = await tests.get('test_counter') ?? {};
+    print(doc.$doc);
+    doc.$doc['counter'] = doc.$doc['counter'] + 1 ?? 1;
+    doc.$save(doc.$doc);
     setState(() {
       // This call to setState tells the Flutter framework that something has
       // changed in this State, which causes it to rerun the build method below

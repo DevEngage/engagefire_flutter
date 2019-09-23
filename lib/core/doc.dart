@@ -141,7 +141,9 @@ class EngageDoc {
   }
 
    $$updateDoc([Map data]) {
-    this.$doc = this.$engageFireStore.omitFire(data);
+     if (data != null) {
+        this.$doc = this.$engageFireStore.omitFire(data);
+     }
     return this.$doc;
   }
 
