@@ -110,6 +110,7 @@ class EngageDoc {
       value -= decrement;
     }
     if (value == null) {
+      if (done != null) done(this.$doc[key]);
       return this.$doc[key];
     }
     this.$doc[key] = value;
