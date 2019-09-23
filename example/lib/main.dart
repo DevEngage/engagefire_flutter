@@ -3,15 +3,15 @@ import 'package:flutter/material.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // await EngageFire.init(
-  //   name: 'EngageFire', 
-  //   iosGoogleAppID: '1:255779484097:ios:39fd46c8f3dd17bb607f40', 
-  //   androidGoogleAppID: '1:255779484097:android:4bc87aa266e1d66c607f40', 
-  //   gcmSenderID: '255779484097', 
-  //   apiKey: 'AIzaSyB0BO2DsW8udknAh0sfpvqNBHvU1vt-CY8', 
-  //   projectID: 'engage-firebase',
-  //   storageBucket: 'engage-firebase.appspot.com',
-  // );
+  await EngageFire.init(
+    name: 'EngageFire', 
+    iosGoogleAppID: '1:255779484097:ios:39fd46c8f3dd17bb607f40', 
+    androidGoogleAppID: '1:255779484097:android:4bc87aa266e1d66c607f40', 
+    gcmSenderID: '255779484097', 
+    apiKey: 'AIzaSyB0BO2DsW8udknAh0sfpvqNBHvU1vt-CY8', 
+    projectID: 'engage-firebase',
+    storageBucket: 'engage-firebase.appspot.com',
+  );
   runApp(MyApp());
 }
 
@@ -58,8 +58,30 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+  EngageFirestore tests = EngageFirestore.getInstance('tests');
 
-  void _incrementCounter() {
+  _MyHomePageState() {
+    init();
+  }
+
+  init() async {
+    dynamic doc = await tests.get('test_counter') ?? {'\$id': 'test_counter', 'counter': 0};
+    var data = doc.$doc;
+    print(data);
+    setState(() {
+      // This call to setState tells the Flutter framework that something has
+      // changed in this State, which causes it to rerun the build method below
+      // so that the display can reflect the updated values. If we changed
+      // _counter without calling setState(), then the build method would not be
+      // called again, and so nothing would appear to happen.
+      _counter: doc.$doc['counter'];
+    });
+  }
+
+  void _incrementCounter() async {
+    dynamic doc = await tests.get('test_counter') ?? {};
+    doc.$doc.counter++;
+    doc.$save();
     setState(() {
       // This call to setState tells the Flutter framework that something has
       // changed in this State, which causes it to rerun the build method below

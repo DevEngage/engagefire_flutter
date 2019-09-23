@@ -38,7 +38,7 @@ class EngageAds {
       appId,
       bannerUnitId: bannerUnitId,
       screenUnitId: screenUnitId,
-      screenUnitId: videoUnitId,
+      videoUnitId: videoUnitId,
       keywords: keywords ?? EngageAds.KEYWORDS,
       contentUrl: contentUrl ?? EngageAds.CONTENT_URL,
       childDirected: childDirected ?? false,

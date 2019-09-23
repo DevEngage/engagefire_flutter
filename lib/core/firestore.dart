@@ -49,8 +49,7 @@ class EngageFirestore {
     ],
   );
 
-  EngageFirestore(String path) {
-    path = path;
+  EngageFirestore(this.path) {
     omitList = OMIT_LIST;
     init();
   }
@@ -70,7 +69,7 @@ class EngageFirestore {
       userId = $user.uid;
       if (debug) print('userId: $userId');
     }
-    await getModelFromDb();
+    // await getModelFromDb();
     $loading = false;
   }
 
@@ -133,7 +132,7 @@ class EngageFirestore {
 
   addFire(data, String id) {
     if (EngageDoc != null) {
-      data.$id = id;
+      data['\$id'] = id;
       return EngageDoc(data: data, path: path, subCollections: subCollections);
     }
     return data;
@@ -145,29 +144,36 @@ class EngageFirestore {
 
   omitFire(Map<String, dynamic> payload) {
     if (payload != null && payload['\$omitList'] != null) {
-      omitList.map((item) => payload.remove(item));
+      omitList.forEach((item) => payload.remove(item));
     }
-    omitList.map((item) => payload.remove(item));
-
-    return payload.map(omitDepth);
+    omitList.forEach((item) => payload.remove(item));
+    if (payload != null) {
+      payload.forEach((key, value) => payload[key] = omitDepth(payload[key]));
+    }
+    return payload;
   }
   
-  MapEntry<dynamic, dynamic> omitDepth(dynamic value, dynamic index) {
+  omitDepth(dynamic value) {
     if (value is List) {
-      value = value.map((item) => item is Map ? this.omitFire(item) : null);
+      value = value.map((item) => item is Map ? this.omitFire(item) : item);
     }
     if (value is Map) {
       value = this.omitFire(value);
-      value = value.map((item) => item is Map<dynamic, dynamic> ? this.omitFire(item) : null);
-      if (value != null && value['\&id']) {
-        value = { 
-          '\$id': value['\&id'], 
-          '\$collection': value['\&collection'],
-          '\$collection': value['\&collection'],
-          '\$image': value['\&image'],
-          'name': value['\&name'] ?? '', 
-        };
-      }
+      value = value.map((item) => item is Map ? this.omitFire(item) : item);
+      value = linkFireCollection(value);
+    }
+    return value;
+  }
+
+  linkFireCollection(value) {
+    if (value != null && value['\&id'] != null) {
+      return { 
+        '\$id': value['\&id'], 
+        '\$collection': value['\&collection'],
+        '\$collection': value['\&collection'],
+        '\$image': value['\&image'],
+        'name': value['\&name'] ?? '', 
+      };
     }
     return value;
   }
@@ -240,7 +246,7 @@ class EngageFirestore {
     return doc;
   }
 
-  Future<dynamic> get(docId, [CollectionReference listRef]) async {
+  Future<dynamic> get(String docId, [CollectionReference listRef]) async {
     $loading = true;
     listRef ??= ref;
     try {
@@ -262,15 +268,14 @@ class EngageFirestore {
   }
 
   Future<dynamic> add(dynamic newDoc, dynamic docRef) async {
-    newDoc.$loading = true;
+    newDoc['\$loading'] = true;
     docRef ??= ref;
     if (newDoc != null && (newDoc.$key != null || newDoc.$id != null)) {
-      newDoc.$loading = false;
+      newDoc['\$loading'] = false;
       return this.update(newDoc, docRef);
     }
     if (debug) {
-      print('add');
-      print(newDoc);
+      print('add $newDoc');
     }
     newDoc = this.omitFire(newDoc);
     DocumentReference blank = docRef.document();
@@ -279,14 +284,14 @@ class EngageFirestore {
   }
 
   Future<dynamic> setDoc(dynamic newDoc, [dynamic docRef]) async {
-    newDoc.$loading = true;
+    newDoc['\$loading'] = true;
     if (debug) {
-      print('set');
-      print(newDoc);
+      print('set $newDoc');
     }
     newDoc = omitFire(newDoc);
     await docRef.setData(newDoc);
-    return addFire(newDoc, docRef.id);
+    newDoc['\$loading'] = false;
+    return addFire(newDoc, docRef.documentID);
   }
 
   Future<dynamic> setWithId(String id, [dynamic newDoc]) async {
@@ -294,44 +299,51 @@ class EngageFirestore {
   }
 
   Future<dynamic> update(dynamic doc, [dynamic docRef]) async {
-    doc.$loading = true;
+    doc['\$loading'] = true;
     docRef ??= ref;
     DocumentReference documentRef;
-    if (doc.$id) {
-      documentRef = docRef.document(doc.$id);
-      doc.$loading = false;
-      if (!(await documentRef.get()).exists) return setDoc(doc, documentRef);
-    } else if (doc.$key) {
-      documentRef = docRef.document(doc.$key);
-      doc.$loading = false;
-      if (!(await documentRef.get()).exists) return setDoc(doc, documentRef);
+    if (doc['\$id'] != null) {
+      documentRef = docRef.document(doc['\$id']);
+      doc['\$loading'] = false;
+      try {
+        if ((await documentRef.get()).exists == false) {
+          return setDoc(doc, documentRef);
+        }
+      } catch (error) {
+        // print(error)
+        return setDoc(doc, documentRef);
+      }
     } else if (docRef.id == null) {
-      doc.$loading = false;
+      doc['\$loading'] = false;
       print('no id');
     }
     if (debug) {
-      print('updated');
-      print(doc);
+      print('updated $doc');
     }
-    doc = omitFire(doc);
-    await documentRef.updateData(doc);
-    return addFire(doc, documentRef.documentID);
+    try {
+      doc = omitFire(doc);
+      await documentRef.updateData(doc);
+      return addFire(doc, documentRef.documentID);
+    } catch (error) {
+      print('update error: $error');
+      return doc;
+    }
   }
 
   Future<dynamic> save(newDoc, [CollectionReference listRef]) async {
     newDoc = omitFire(newDoc);
-    newDoc.$updatedAt = DateTime.now().millisecondsSinceEpoch;
+    newDoc['\$updatedAt'] = DateTime.now().millisecondsSinceEpoch;
     dynamic doc;
     try {
-      if (newDoc != null && (newDoc.$key != null || newDoc.$id != null)) {
+      if (newDoc != null && newDoc['\$id'] != null) {
         doc = await update(newDoc, listRef);
       } else if (listRef != null && listRef.id != null) {
-        newDoc.$createdAt = DateTime.now().millisecondsSinceEpoch;
-        newDoc.$timezoneOffset = DateTime.now().timeZoneOffset;
+        newDoc['\$createdAt'] = DateTime.now().millisecondsSinceEpoch;
+        newDoc['\$timezoneOffset'] = DateTime.now().timeZoneOffset;
         doc = await setDoc(newDoc, listRef);
       } else {
-        newDoc.$createdAt = DateTime.now().millisecondsSinceEpoch;
-        newDoc.$timezoneOffset = DateTime.now().timeZoneOffset;
+        newDoc['\$createdAt'] = DateTime.now().millisecondsSinceEpoch;
+        newDoc['\$timezoneOffset'] = DateTime.now().timeZoneOffset;
         doc = await add(newDoc, listRef);
         list = [...list, doc];
       }
@@ -339,7 +351,11 @@ class EngageFirestore {
       print(error);
 
     }
-    doc.$loading = false;
+    if (doc is EngageDoc) {
+      doc.$loading = false;
+    } else if (doc != null) {
+      doc['\$loading'] = false;
+    }
     return doc;
   }
 
@@ -483,7 +499,7 @@ class EngageFirestore {
       'firstName': firstName, 
       'lastName': lastName, 
       'email': email,
-      'updatedAt': DateTime.now()
+      '\$updatedAt': DateTime.now()
     }, merge: true);
 
   }

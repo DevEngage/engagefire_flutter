@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:engagefire/core/ads.dart';
 import 'package:engagefire/core/files.dart';
 import 'package:engagefire/core/pubsub.dart';
-import 'package:firebase_admob/firebase_admob.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
