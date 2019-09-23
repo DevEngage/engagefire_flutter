@@ -1,11 +1,11 @@
 
 
 import 'package:engagefire/core/firestore.dart';
-import 'dart:collection';
 
 class EngageDoc {
   static Map<String, EngageDoc> instances = {};
   dynamic $ref;
+  dynamic $docRef;
   dynamic $collectionRef;
   EngageFirestore $engageFireStore;
   String $path;
@@ -18,9 +18,10 @@ class EngageDoc {
   List<String> $omitList = [];
   List relations = [];
   int position;
-  Map $doc = {
+  Map<String, dynamic> $doc = {
     '\$owner': '',
     '\$id': '',
+    '\$collection': '',
   };
 
   EngageDoc({String path, Map data, List<String> subCollections}) {
@@ -44,6 +45,9 @@ class EngageDoc {
     tmpPath = this.$engageFireStore.path;
     this.$path = "$tmpPath/$this['\$id']";
     this.$collection = this.$ref.path;
+    this.$doc['\$collection'] = this.$collection;
+    this.$doc['\$id'] = this.$id; 
+    this.$docRef = this.$ref.document(this.$id);
 
     (this.$collectionsList ?? []).forEach($buildCollections);
     this.$loading = false;
@@ -57,19 +61,24 @@ class EngageDoc {
     if (preFetch == 'list') this.$collections['$sub\_'].getList();
   }
 
-  Future $save(data) {
-    this.$$updateDoc(data);
-    return this.$engageFireStore.save(this.$doc);
+  Future $save([data]) {
+    if (data != null) this.$$updateDoc(data);
+    try {
+      return this.$engageFireStore.save(this);
+    } catch (error) {
+      print('EngageDoc.save: $error');
+    }
   }
 
-  Future $update(data) {
+  Future $update([data]) {
     this.$$updateDoc(data);
-    return this.$engageFireStore.update(this.$doc);
+    if (data != null) this.$$updateDoc(data);
+    return this.$engageFireStore.update(this);
   }
 
-  Future $set(data) {
-    this.$$updateDoc(data);
-    return this.$engageFireStore.update(this.$doc);
+  Future $set([data]) {
+    if (data != null) this.$$updateDoc(data);
+    return this.$engageFireStore.update(this);
   }
 
   Future $get() async {
@@ -80,9 +89,7 @@ class EngageDoc {
   Future $attachOwner() async {
     this.$owner = await this.$engageFireStore.getUserId;
     this.$doc['\$owner'] = this.$owner;
-    this.$$updateDoc();
-    this.$doc = await this.$engageFireStore.save(this.$doc);
-    return this.$doc;
+    return this.$save();
   }
 
   Future $isOwner([userId]) async {
@@ -90,14 +97,29 @@ class EngageDoc {
     if (userId == null) {
       await this.$attachOwner();
     }
-    return this.$owner == (await this.$engageFireStore.getUserId);
+    return this.$doc['\$owner'] == (await this.$engageFireStore.getUserId);
   }
 
-  $(String key, [dynamic value]) {
+  Future<dynamic> $(String key, {dynamic value, int increment, int decrement, save = true, done}) async {
+    if (increment != null && increment > 0) {
+      value ??= this.$doc[key] ?? 0;
+      value += increment;
+    }
+    if (decrement != null && decrement > 0) {
+      value ??= this.$doc[key] ?? 0;
+      value -= decrement;
+    }
     if (value == null) {
       return this.$doc[key];
     }
-    return this.$doc[key] = value;
+    this.$doc[key] = value;
+    if(save) await this.$save();
+    if (done != null) done(value);
+    return this.$doc[key];
+  }
+
+  setState(value, cb) {
+    // cb({})    
   }
 
 
@@ -149,7 +171,6 @@ class EngageDoc {
   }
 
    $$updateDoc([Map data]) {
-     data.map((key, value) => this[key] = value);
      if (data != null) {
         this.$doc = this.$engageFireStore.omitFire(data);
      }
@@ -157,7 +178,7 @@ class EngageDoc {
   }
 
   Future $getSubCollection(String collection, [db]) async {
-    return EngageFirestore.getInstance("$this['\$path']/$collection", db ?? this.$ref);
+    return EngageFirestore.getInstance("$this['\$path']/$collection");
   }
 
   // Future $watch(cb) async {

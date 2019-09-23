@@ -65,34 +65,33 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   init() async {
-    dynamic doc = await tests.get('test_counter') ?? {'\$id': 'test_counter', 'counter': 0};
+    EngageDoc doc = await tests.get('test_counter') ?? {'\$id': 'test_counter', 'counter': 0};
     var data = doc.$doc;
+    // doc.setState([], () => setState(() {});
     print(data);
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter: doc.$doc['counter'];
-    });
+    // setState(() {
+    //   // This call to setState tells the Flutter framework that something has
+    //   // changed in this State, which causes it to rerun the build method below
+    //   // so that the display can reflect the updated values. If we changed
+    //   // _counter without calling setState(), then the build method would not be
+    //   // called again, and so nothing would appear to happen.
+    //   _counter = doc.$doc['counter'];
+    // });
   }
 
   void _incrementCounter() async {
     EngageDoc doc = await tests.get('test_counter') ?? {};
-    doc.$('test');
-    doc.$('test', 'test');
-    print(doc.$doc);
-    doc.$doc['counter'] = doc.$doc['counter'] + 1 ?? 1;
-    doc.$save(doc.$doc);
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+    await doc.$('counter', increment: 1, done: (val) => setState(() => _counter = val));
+    // print(doc.$doc);
+    // doc.$save();
+    // setState(() {
+    //   // This call to setState tells the Flutter framework that something has
+    //   // changed in this State, which causes it to rerun the build method below
+    //   // so that the display can reflect the updated values. If we changed
+    //   // _counter without calling setState(), then the build method would not be
+    //   // called again, and so nothing would appear to happen.
+    //   _counter++;
+    // });
   }
 
   @override
