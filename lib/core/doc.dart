@@ -93,6 +93,14 @@ class EngageDoc {
     return this.$owner == (await this.$engageFireStore.getUserId);
   }
 
+  $(String key, [dynamic value]) {
+    if (value == null) {
+      return this.$doc[key];
+    }
+    return this.$doc[key] = value;
+  }
+
+
   // async $addFiles(elements?: never[] | undefined, inputId?: string | undefined) {
   //   this.$$updateDoc();
   //   return await this.$engageFireStore.uploadFiles(this, elements, inputId);
@@ -141,6 +149,7 @@ class EngageDoc {
   }
 
    $$updateDoc([Map data]) {
+     data.map((key, value) => this[key] = value);
      if (data != null) {
         this.$doc = this.$engageFireStore.omitFire(data);
      }

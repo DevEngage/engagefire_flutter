@@ -80,6 +80,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _incrementCounter() async {
     EngageDoc doc = await tests.get('test_counter') ?? {};
+    doc.$('test');
+    doc.$('test', 'test');
     print(doc.$doc);
     doc.$doc['counter'] = doc.$doc['counter'] + 1 ?? 1;
     doc.$save(doc.$doc);
