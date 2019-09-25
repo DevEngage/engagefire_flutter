@@ -255,7 +255,7 @@ class EngageFirestore {
     return doc;
   }
 
-  Future<dynamic> get(String docId, {CollectionReference listRef, blank = true}) async {
+  Future<dynamic> get(String docId, {CollectionReference listRef, blank = true, }) async {
     $loading = true;
     listRef ??= ref;
     try {
@@ -269,7 +269,7 @@ class EngageFirestore {
         else this.list.add(fireDoc);
         return fireDoc;
       }
-      return add({'\$updatedAt': DateTime.now().millisecondsSinceEpoch}, docRef: listRef);
+      return add({'\$updatedAt': DateTime.now().millisecondsSinceEpoch, '\$id': docId}, docRef: listRef);
     } catch (error) {
       print(error);
       return null;
