@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -46,7 +45,7 @@ class EngageFiles {
     return Uuid().v1();
   }
 
-  getImage(url, file) {
+  image({url, file}) {
     return Image(image: NetworkToFileImage(url: url, file: file, debug: true));
   }
 
@@ -57,7 +56,7 @@ class EngageFiles {
     return file;
   }
 
-  Future<void> uploadFile(File file, String path) async {
+  Future<StorageUploadTask> uploadFile(File file, String path) async {
     final String type = file.path.split('.')[file.path.length - 1];
     final String name = file.path.split('.')[file.path.length - 2] ?? generateUuid();
     final StorageReference ref = storage.ref().child(path).child('$name.$type');
@@ -74,7 +73,7 @@ class EngageFiles {
     // });
   }
 
-  Future<void>_downloadFile(StorageReference ref) async {
+  Future<Map>downloadStorageFile(StorageReference ref) async {
     final String url = await ref.getDownloadURL();
     final http.Response downloadData = await http.get(url);
     final String fileContents = downloadData.body;
@@ -82,11 +81,11 @@ class EngageFiles {
     final String bucket = await ref.getBucket();
     final String path = await ref.getPath();
     return {
-      url,
-      fileContents,
-      name,
-      bucket,
-      path,
+      url: url,
+      fileContents: fileContents,
+      name: name,
+      bucket: bucket,
+      path: path,
     };
     // _scaffoldKey.currentState.showSnackBar(SnackBar(
     //   content: Text(
@@ -98,6 +97,39 @@ class EngageFiles {
     // ));
   }
 
+  Future<Map>downloadFile(String url) async {
+    final http.Response downloadData = await http.get(url);
+    final String fileContents = downloadData.body;
+    return {
+      url: url,
+      fileContents: fileContents,
+    };
+    // _scaffoldKey.currentState.showSnackBar(SnackBar(
+    //   content: Text(
+    //     'Success!\n Downloaded $name \n from url: $url @ bucket: $bucket\n '
+    //     'at path: $path \n\nFile contents: "$fileContents" \n'
+    //     'Wrote "$tempFileContents" to tmp.txt',
+    //     style: const TextStyle(color: Color.fromARGB(255, 0, 155, 0)),
+    //   ),
+    // ));
+  }
+
+  Future<Map> getFileMeta(StorageUploadTask task) async {
+    StorageTaskSnapshot snapshot = await task.onComplete;
+    return {
+      'url': snapshot.ref.getDownloadURL(),
+      'path': snapshot.storageMetadata.path,
+      'name': snapshot.storageMetadata.name,
+      'bucket': snapshot.storageMetadata.bucket,
+      'generation': snapshot.storageMetadata.generation,
+      'metadataGeneration': snapshot.storageMetadata.metadataGeneration,
+      'sizeBytes': snapshot.storageMetadata.sizeBytes,
+      'creationTimeMillis': snapshot.storageMetadata.creationTimeMillis,
+      'updatedTimeMillis': snapshot.storageMetadata.updatedTimeMillis,
+      'md5Hash': snapshot.storageMetadata.md5Hash,
+      'customMetadata': snapshot.storageMetadata.customMetadata
+    }
+  }
 
   /* IMAGE */
 
@@ -197,6 +229,15 @@ class EngageFiles {
     _lastCropped = file;
 
     debugPrint('$file');
+  }
+
+  Future<Map> getImageSize(File file) async {
+    final options = await ImageCrop.getImageOptions(file: file);
+    debugPrint('image width: ${options.width}, height: ${options.height}');
+    return {
+      'width': options.width,
+      'height': options.height
+    };
   }
 
 

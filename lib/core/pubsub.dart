@@ -8,14 +8,16 @@ class EngagePubsub {
   static var app;
   static var storage;
   static var ads;
+  static var auth;
   static EngagePubsub instance;
   Map<String, List> listeners = {};
   var data = {};
 
-  static init({app, storage, ads}) {
+  static init({app, storage, ads, auth}) {
     EngagePubsub.app = app;
     EngagePubsub.storage = storage;
     EngagePubsub.ads = ads;
+    EngagePubsub.auth = auth;
   }
 
   subscribe([String what = 'all', var listener]) {

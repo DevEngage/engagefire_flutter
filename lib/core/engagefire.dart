@@ -5,13 +5,15 @@ import 'package:engagefire/core/ads.dart';
 import 'package:engagefire/core/files.dart';
 import 'package:engagefire/core/pubsub.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+
+import 'auth.dart';
 
 class EngageFire {
   static Map _options;
   static FirebaseApp _app;
-  static FirebaseStorage _storage;
-  static var _ads;
+  static EngageAuth _auth;
+  static EngageFiles _storage;
+  static EngageAds _ads;
 
   EngageFire() {}
 
@@ -80,10 +82,15 @@ class EngageFire {
         testing:testing,
       );
     }
-    EngagePubsub.init(app: _app, storage: _storage, ads: _ads);
+    EngageFire._auth = await EngageAuth.init();
+    EngagePubsub.init(app: _app, storage: _storage, ads: _ads, auth: _auth);
     return EngageFire._app;
   }
 
   static get options => _options;
+  static FirebaseApp get app => EngageFire._app;
+  static EngageAuth get auth => EngageFire._auth;
+  static EngageFiles get storage => EngageFire._storage;
+  static EngageAds get ads => EngageFire._ads;
   
 }

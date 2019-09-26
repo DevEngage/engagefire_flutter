@@ -1,6 +1,10 @@
 
 
+import 'dart:io';
 import 'package:engagefire/core/firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'auth.dart';
+import 'engagefire.dart';
 
 class EngageDoc {
   static Map<String, EngageDoc> instances = {};
@@ -12,6 +16,7 @@ class EngageDoc {
   String $owner;
   String $id;
   String $collection;
+  StorageUploadTask $uploadTask;
   bool $loading = true;
   Map $collections = {};
   List<String> $collectionsList = [];
@@ -87,7 +92,7 @@ class EngageDoc {
   }
 
   Future $attachOwner() async {
-    this.$owner = await this.$engageFireStore.getUserId;
+    this.$owner = await EngageAuth().currentUserId;
     this.$doc['\$owner'] = this.$owner;
     return this.$save();
   }
@@ -97,7 +102,7 @@ class EngageDoc {
     if (userId == null) {
       await this.$attachOwner();
     }
-    return this.$doc['\$owner'] == (await this.$engageFireStore.getUserId);
+    return this.$doc['\$owner'] == (await EngageAuth().currentUserId);
   }
 
   Future<dynamic> $(String key, {dynamic value, int increment, int decrement, save = true, done}) async {
@@ -119,46 +124,64 @@ class EngageDoc {
     return this.$doc[key];
   }
 
-  setState(value, cb) {
-    // cb({})    
+  $addFiles({File file, String path, String id}) async {
+    dynamic storage = EngageFire.storage;
+    await storage.uploadFile(file, this.$path);
+    this.$uploadTask = await storage.uploadFile(file, path ?? this.$path);
+    Map image = await storage.getFileMeta(this.$uploadTask);
+    await EngageFirestore.getInstance("${this.$path}/\$files").save({'\$id': id, ...image});
+    return image;
   }
 
+  $setImage({String type, dynamic thumbnail, String width, String height, File file}) async {
+    dynamic storage = EngageFire.storage;
+    Map image;
+    Map thumb;
+    if (type == 'take') {
+      file = storage.takePic();
+    } else {
+      file ??= storage.pickImage();
+    }
+    image = $addFiles(file: file, id: '\$image', path: "${this.$path}/\$image");
+    $doc['\$image'] = image['url'];
+    if (thumbnail != null) {
+      String width = thumbnail.width;
+      String height = thumbnail.height;
+      thumb = $addFiles(file: file, id: '\$thumb', path: "${this.$path}/\$thumb");
+      $doc['\$thumb'] = thumb['url'];
+    }
+    await this.$save();
+    return {
+      'image': image,
+      'thumb': thumb,
+    }; 
+  }
 
-  // async $addFiles(elements?: never[] | undefined, inputId?: string | undefined) {
-  //   this.$$updateDoc();
-  //   return await this.$engageFireStore.uploadFiles(this, elements, inputId);
-  // }
+  $removeImage() async {
+    await EngageFirestore.getInstance("${this.$path}/\$files").remove('\$image');
+    await EngageFirestore.getInstance("${this.$path}/\$files").remove('\$thumb');
+    $doc['\$image'] = '';
+    $doc['\$thumb'] = '';
+    await this.$save();
+    return this.$doc;
+  }
 
-  // async $setImage(options?: { width: string; height: string; thumbnail: { width: string; height: string; }; } | undefined, inputId?: any, file?: any) {
-  //   this.$$updateDoc();
-  //   return await this.$engageFireStore.uploadImage(this, inputId, file);
-  // }
+  $removeFile(String fileId) async {
+    return await EngageFirestore.getInstance("${this.$path}/\$files").remove(fileId);
+  }
 
-  // async $removeImage() {
-  //   this.$$updateDoc();
-  //   await this.$engageFireStore.deleteImage(this.$doc);
-  //   await this.$save();
-  //   return this.$doc;
-  // }
+  $getFiles() async {
+    return (await EngageFirestore.getInstance('${this.$path}/\$files')).getList();
+  }
 
-  // async $removeFile(fileId: any) {
-  //   this.$$updateDoc();
-  //   await this.$engageFireStore.deleteFile(this.$doc, fileId);
-  //   return this.$doc;
-  // }
+  $getFile(String fileId) async {
+    return (await EngageFirestore.getInstance('${this.$path}/\$files')).get(fileId);
+  }
 
-  // async $getFiles() {
-  //   return (await this.$getSubCollection('$files')).getList();
-  // }
-
-  // async $getFile(fileId: any) {
-  //   return (await this.$getSubCollection('$files')).get(fileId);
-  // }
-
-  // async $downloadFile(fileId: any) {
-  //   const fileDoc: any = (await this.$getSubCollection('$files')).get(fileId);
-  //   return await this.$engageFireStore.downloadFile(fileDoc.url);
-  // }
+  $downloadFile(String fileId) async {
+    Map fileDoc = (await this.$getSubCollection('\$files')).get(fileId);
+    return await EngageFire.storage.downloadFile(fileDoc['url']);
+  }
 
   
   Future $remove([showConfirm = false]) async {
@@ -194,13 +217,11 @@ class EngageDoc {
   //     .listen((doc) => doc.exists ? cb(this.addFire(doc.data, doc.documentID), doc) : cb(null, doc));
   // }
 
-  // Future $backup(bool deep, String backupPath) async {
-  //   this.$$updateDoc();
-  //   return await this.$engageFireStore.backupDoc(this.$doc, deep, backupPath);
-  // }
+  Future $backup(bool deep, String backupPath) async {
+    return this.$engageFireStore.backupDoc(this.$doc, deep, backupPath);
+  }
 
   $exists() {
-    this.$$updateDoc();
     return this.$doc != null;
   }
 
@@ -216,15 +237,15 @@ class EngageDoc {
 
   Future $swapPosition(x, y, [List list]) async {
     list = list ?? this.$$getSortedParentList();
-    if (list.every((item) => item.position != null)) {
+    if (list.every((item) => item.$doc['position'] != null)) {
       await this.$engageFireStore.buildListPositions();
     }
     var itemX = list[x];
     var itemY = list[y];
-    var itemXPos = itemX.position || x + 1;
-    var itemYPos = itemY.position || y + 1;
-    itemX.position = itemYPos;
-    itemY.position = itemXPos;
+    var itemXPos = itemX.$doc['position'] || x + 1;
+    var itemYPos = itemY.$doc['position'] || y + 1;
+    itemX.$doc['position'] = itemYPos;
+    itemY.$doc['position'] = itemXPos;
     this.$engageFireStore.list[y] = itemX;
     this.$engageFireStore.list[x] = itemY;
     await itemX.$save();
@@ -233,7 +254,7 @@ class EngageDoc {
 
   Future $moveUp() async {
     var list = $$getSortedParentList();
-    int index = list.findIndex((item) => item.position == this.position);
+    int index = list.findIndex((item) => item.$doc['position'] == this.$doc['position']);
     if (index <= 0) {
       return;
     }
@@ -242,7 +263,7 @@ class EngageDoc {
 
   Future $moveDown() async {
     var list = $$getSortedParentList();
-    int index = list.findIndex((item) => item.position == this.position);
+    int index = list.findIndex((item) => item['position'] == this.$doc['position']);
     if (index >= list.length - 1) {
       return;
     }
