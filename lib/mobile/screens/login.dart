@@ -4,80 +4,39 @@ import 'package:flutter/material.dart';
 
 
 class EngageLoginScreen extends StatefulWidget {
+  final String title;
+  final Image logo;
+  final Image logoIcon;
+  final AssetImage startBackground;
+  final AssetImage loginBackground;
+  final AssetImage signupBackground;
+  bool google = false;
+  bool twitter = false;
+  bool facebook = false;
+  EngageLoginScreen({
+    Key key, 
+    this.title, 
+    this.logo, 
+    this.logoIcon, 
+    this.startBackground, 
+    this.loginBackground, 
+    this.signupBackground,
+    this.google,
+    this.twitter,
+    this.facebook,
+    }) : super(key: key);
+
   @override
   _EngageLoginScreenState createState() => _EngageLoginScreenState();
 }
 
 class _EngageLoginScreenState extends State<EngageLoginScreen> with TickerProviderStateMixin {
 
-    EngageAuth auth = EngageFire.auth;
-    final emailController = TextEditingController();
-    final passwordController = TextEditingController();
-    final passwordAgainController = TextEditingController();
-
-  //The code is commented because instead of manual scrolling with animation,
-  //Now PageView is being used
-
-  /*double scrollPercent = 0.0;
-  Offset startDrag;
-  double startDragPercentScroll;
-  double dragDirection; // -1 for left, +1 for right
-
-  AnimationController controller_minus1To0;
-  AnimationController controller_0To1;
-  CurvedAnimation anim_minus1To0;
-  CurvedAnimation anim_0To1;
-
-  final numCards = 3;
-
-  void _onHorizontalDragStart(DragStartDetails details) {
-    startDrag = details.globalPosition;
-    startDragPercentScroll = scrollPercent;
-  }
-
-  void _onHorizontalDragUpdate(DragUpdateDetails details) {
-    final currDrag = details.globalPosition;
-    final dragDistance = currDrag.dx - startDrag.dx;
-    if (dragDistance > 0) {
-      dragDirection = 1.0;
-    } else {
-      dragDirection = -1.0;
-    }
-    final singleCardDragPercent = dragDistance / context.size.width;
-
-    setState(() {
-      scrollPercent =
-          (startDragPercentScroll + (-singleCardDragPercent / numCards))
-              .clamp(0.0 - (1 / numCards), (1 / numCards));
-      print(scrollPercent);
-    });
-  }
-
-  void _onHorizontalDragEnd(DragEndDetails details) {
-    if (scrollPercent > 0.1666) {
-      print("FIRST CASE");
-      controller_0To1.forward(from: scrollPercent * numCards);
-    } else if (scrollPercent < 0.1666 &&
-        scrollPercent > -0.1666 &&
-        dragDirection == -1.0) {
-      print("SECOND CASE");
-      controller_0To1.reverse(from: scrollPercent * numCards);
-    } else if (scrollPercent < 0.1666 &&
-        scrollPercent > -0.1666 &&
-        dragDirection == 1.0) {
-      print("THIRD CASE");
-      controller_minus1To0.forward(from: scrollPercent * numCards);
-    } else if (scrollPercent < -0.1666) {
-      print("LAST CASE");
-      controller_minus1To0.reverse(from: scrollPercent * numCards);
-    }
-
-    setState(() {
-      startDrag = null;
-      startDragPercentScroll = null;
-    });
-  }
-  */
+  EngageAuth auth = EngageFire.auth;
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  final passwordAgainController = TextEditingController();
+  bool large = false;
 
   loginWithEmail(email, password) {
     // final GoogleSignIn _googleSignIn = GoogleSignIn();
@@ -87,6 +46,7 @@ class _EngageLoginScreenState extends State<EngageLoginScreen> with TickerProvid
   @override
   void initState() {
     super.initState();
+    large = widget.google && widget.facebook && widget.twitter;
     // auth.getUser.then(
     //   (user) {
     //     if (user != null) {
@@ -94,45 +54,83 @@ class _EngageLoginScreenState extends State<EngageLoginScreen> with TickerProvid
     //     }
     //   },
     // );
+  }
 
-    //The code is commented because instead of manual scrolling with animation,
-    //Now PageView is being used
+  socialLogin(String name) {
+    if (name.toLowerCase() == 'google') {
+      auth.googleSignIn();
+    }
+  }
 
-    /*
-    controller_minus1To0 = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-      lowerBound: -1.0,
-      upperBound: 0.0,
+  Widget SocialButton(String name, int icon, Color color) {
+    return Expanded(
+      child: Container(
+        margin: EdgeInsets.only(right: 8.0),
+        alignment: Alignment.center,
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              child: FlatButton(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30.0),
+                ),
+                color: color,
+                onPressed: () => {},
+                child: Container(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Expanded(
+                        child: FlatButton(
+                          onPressed: ()=> socialLogin(name),
+                          padding: EdgeInsets.only(
+                            top: 20.0,
+                            bottom: 20.0,
+                          ),
+                          child: Row(
+                            mainAxisAlignment:
+                                MainAxisAlignment.spaceEvenly,
+                            children: <Widget>[
+                              Icon(
+                                IconData(icon,
+                                    fontFamily: 'icomoon'),
+                                color: Colors.white,
+                                size: 15.0,
+                              ),
+                              if (!large) Text(
+                                name,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
-    controller_0To1 = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-      lowerBound: 0.0,
-      upperBound: 1.0,
-    );
+  }
 
-    anim_minus1To0 = CurvedAnimation(
-      parent: controller_minus1To0,
-      curve: Interval(0.10, 0.90, curve: Curves.bounceInOut),
+  Widget SocialButtons() {
+    return Container(
+      width: MediaQuery.of(context).size.width,
+      margin: const EdgeInsets.only(left: 30.0, right: 30.0, top: 20.0),
+      child: Row(
+        children: <Widget>[
+          if (widget.google) SocialButton('GOOGLE', 0xea88, Color(0XffFC5345)),
+          if (widget.facebook) SocialButton('FACEBOOK', 0xea90, Color(0Xff4C76BE)),
+          if (widget.twitter) SocialButton('TWITTER', 0xea96, Color(0Xff00C7FF)),
+        ],
+      ),
     );
-    anim_0To1 = CurvedAnimation(
-      parent: controller_0To1,
-      curve: Interval(0.10, 0.90, curve: Curves.bounceInOut),
-    );
-
-    anim_0To1.addListener(() {
-      scrollPercent = controller_0To1.value / numCards;
-//      print(scrollPercent);
-      setState(() {});
-    });
-
-    anim_minus1To0.addListener(() {
-      scrollPercent = controller_minus1To0.value / numCards;
-//      print(scrollPercent);
-      setState(() {});
-    });
-    */
   }
 
   Widget HomePage() {
@@ -143,40 +141,18 @@ class _EngageLoginScreenState extends State<EngageLoginScreen> with TickerProvid
         image: DecorationImage(
           colorFilter: ColorFilter.mode(
               Colors.black.withOpacity(0.1), BlendMode.dstATop),
-          image: AssetImage('assets/images/rope-pullup.jpg'),
+          image: widget.startBackground,
           fit: BoxFit.cover,
         ),
       ),
       child: Column(
         children: <Widget>[
           Container(
-            padding: EdgeInsets.only(top: 250.0, left: 100, right: 100),
+            padding: EdgeInsets.only(top: 150.0, left: 100, right: 100),
             child: Center(
-                child: Image.asset('assets/icon/logo.png', fit: BoxFit.fitWidth,)
+                child: widget.logo
             ),
           ),
-//          Container(
-//            padding: EdgeInsets.only(top: 20.0),
-//            child: Row(
-//              mainAxisAlignment: MainAxisAlignment.center,
-//              children: <Widget>[
-//                Text(
-//                  "Awesome",
-//                  style: TextStyle(
-//                    color: Colors.white,
-//                    fontSize: 20.0,
-//                  ),
-//                ),
-//                Text(
-//                  "App",
-//                  style: TextStyle(
-//                      color: Colors.white,
-//                      fontSize: 20.0,
-//                      fontWeight: FontWeight.bold),
-//                ),
-//              ],
-//            ),
-//          ),
           Container(
             width: MediaQuery.of(context).size.width,
             margin: const EdgeInsets.only(left: 30.0, right: 30.0, top: 150.0),
@@ -199,7 +175,7 @@ class _EngageLoginScreenState extends State<EngageLoginScreen> with TickerProvid
                         children: <Widget>[
                           Expanded(
                             child: Text(
-                              "SIGN UP",
+                              "SIGN UP WITH EMAIL",
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                   color: Colors.white,
@@ -236,7 +212,7 @@ class _EngageLoginScreenState extends State<EngageLoginScreen> with TickerProvid
                         children: <Widget>[
                           Expanded(
                             child: Text(
-                              "LOGIN",
+                              "LOGIN WITH EMAIL",
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                   color: Theme.of(context).accentColor,
@@ -251,6 +227,35 @@ class _EngageLoginScreenState extends State<EngageLoginScreen> with TickerProvid
               ],
             ),
           ),
+          Container(
+            width: MediaQuery.of(context).size.width,
+            margin: const EdgeInsets.only(left: 30.0, right: 30.0, top: 20.0),
+            alignment: Alignment.center,
+            child: Row(
+              children: <Widget>[
+                Expanded(
+                  child: Container(
+                    margin: EdgeInsets.all(8.0),
+                    decoration: BoxDecoration(border: Border.all(width: 0.25)),
+                  ),
+                ),
+                Text(
+                  "OR CONNECT WITH",
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Expanded(
+                  child: Container(
+                    margin: EdgeInsets.all(8.0),
+                    decoration: BoxDecoration(border: Border.all(width: 0.25)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SocialButtons()
         ],
       ),
     );
@@ -264,7 +269,7 @@ class _EngageLoginScreenState extends State<EngageLoginScreen> with TickerProvid
         image: DecorationImage(
           colorFilter: ColorFilter.mode(
               Colors.black.withOpacity(0.2), BlendMode.dstATop),
-          image: AssetImage('assets/images/lunge-with-dumbbell.jpg'),
+          image: widget.loginBackground,
           fit: BoxFit.cover,
         ),
       ),
@@ -273,7 +278,7 @@ class _EngageLoginScreenState extends State<EngageLoginScreen> with TickerProvid
           Container(
             padding: EdgeInsets.all(37.0),
             child: Center(
-                child: Image.asset('assets/icon/logo-icon.png', width: 133,)
+                child: widget.logoIcon
             ),
           ),
           Row(
@@ -437,150 +442,6 @@ class _EngageLoginScreenState extends State<EngageLoginScreen> with TickerProvid
               ],
             ),
           ),
-          Container(
-            width: MediaQuery.of(context).size.width,
-            margin: const EdgeInsets.only(left: 30.0, right: 30.0, top: 20.0),
-            alignment: Alignment.center,
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                  child: Container(
-                    margin: EdgeInsets.all(8.0),
-                    decoration: BoxDecoration(border: Border.all(width: 0.25)),
-                  ),
-                ),
-                Text(
-                  "OR CONNECT WITH",
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Expanded(
-                  child: Container(
-                    margin: EdgeInsets.all(8.0),
-                    decoration: BoxDecoration(border: Border.all(width: 0.25)),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            width: MediaQuery.of(context).size.width,
-            margin: const EdgeInsets.only(left: 30.0, right: 30.0, top: 20.0),
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                  child: Container(
-                    margin: EdgeInsets.only(right: 8.0),
-                    alignment: Alignment.center,
-                    child: Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: FlatButton(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30.0),
-                            ),
-                            color: Color(0Xff3B5998),
-                            onPressed: () => {},
-                            child: Container(
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: <Widget>[
-                                  Expanded(
-                                    child: FlatButton(
-                                      onPressed: ()=>{},
-                                      padding: EdgeInsets.only(
-                                        top: 20.0,
-                                        bottom: 20.0,
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceEvenly,
-                                        children: <Widget>[
-                                          Icon(
-                                            const IconData(0xea90,
-                                                fontFamily: 'icomoon'),
-                                            color: Colors.white,
-                                            size: 15.0,
-                                          ),
-                                          Text(
-                                            "FACEBOOK",
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Container(
-                    margin: EdgeInsets.only(left: 8.0),
-                    alignment: Alignment.center,
-                    child: Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: FlatButton(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30.0),
-                            ),
-                            color: Color(0Xffdb3236),
-                            onPressed: () => {},
-                            child: Container(
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: <Widget>[
-                                  Expanded(
-                                    child: FlatButton(
-                                      onPressed: ()=> auth.googleSignIn(),
-                                      padding: EdgeInsets.only(
-                                        top: 20.0,
-                                        bottom: 20.0,
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceEvenly,
-                                        children: <Widget>[
-                                          Icon(
-                                            const IconData(0xea88,
-                                                fontFamily: 'icomoon'),
-                                            color: Colors.white,
-                                            size: 15.0,
-                                          ),
-                                          Text(
-                                            "GOOGLE",
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          )
         ],
       ),
     );
@@ -594,7 +455,7 @@ class _EngageLoginScreenState extends State<EngageLoginScreen> with TickerProvid
         image: DecorationImage(
           colorFilter: ColorFilter.mode(
               Colors.black.withOpacity(0.05), BlendMode.dstATop),
-          image: AssetImage('assets/images/lunge-with-dumbbell.jpg'),
+          image: widget.signupBackground,
           fit: BoxFit.cover,
         ),
       ),
@@ -603,7 +464,7 @@ class _EngageLoginScreenState extends State<EngageLoginScreen> with TickerProvid
           Container(
             padding: EdgeInsets.all(37.0),
             child: Center(
-                child: Image.asset('assets/icon/logo-icon.png', width: 133,)
+                child: widget.logoIcon
             ),
           ),
           Row(
@@ -855,35 +716,13 @@ class _EngageLoginScreenState extends State<EngageLoginScreen> with TickerProvid
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Scaffold(body: Container(
         height: MediaQuery.of(context).size.height,
-//      child: GestureDetector(
-//        onHorizontalDragStart: _onHorizontalDragStart,
-//        onHorizontalDragUpdate: _onHorizontalDragUpdate,
-//        onHorizontalDragEnd: _onHorizontalDragEnd,
-//        behavior: HitTestBehavior.translucent,
-//        child: Stack(
-//          children: <Widget>[
-//            FractionalTranslation(
-//              translation: Offset(-1 - (scrollPercent / (1 / numCards)), 0.0),
-//              child: SignupPage(),
-//            ),
-//            FractionalTranslation(
-//              translation: Offset(0 - (scrollPercent / (1 / numCards)), 0.0),
-//              child: HomePage(),
-//            ),
-//            FractionalTranslation(
-//              translation: Offset(1 - (scrollPercent / (1 / numCards)), 0.0),
-//              child: LoginPage(),
-//            ),
-//          ],
-//        ),
-//      ),
         child: PageView(
           controller: _controller,
           physics: AlwaysScrollableScrollPhysics(),
           children: <Widget>[LoginPage(), HomePage(), SignupPage()],
           scrollDirection: Axis.horizontal,
-        ));
+        )));
   }
 }
