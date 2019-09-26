@@ -5,6 +5,7 @@ import 'package:engagefire/core/ads.dart';
 import 'package:engagefire/core/files.dart';
 import 'package:engagefire/core/pubsub.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 import 'auth.dart';
 
@@ -65,7 +66,7 @@ class EngageFire {
       ),
     );
     if (enableStorage) {
-      EngageFire._storage = await EngageFiles.init(storageBucket ?? '$projectID.appspot.com', EngageFire._app);
+      EngageFire._storage = EngageFiles(storageBucket ?? '$projectID.appspot.com', EngageFire._app);
     }
     if (Ads != null) {
       EngageFire._ads = await EngageAds.init(

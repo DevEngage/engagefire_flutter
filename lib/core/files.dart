@@ -128,7 +128,7 @@ class EngageFiles {
       'updatedTimeMillis': snapshot.storageMetadata.updatedTimeMillis,
       'md5Hash': snapshot.storageMetadata.md5Hash,
       'customMetadata': snapshot.storageMetadata.customMetadata
-    }
+    };
   }
 
   /* IMAGE */

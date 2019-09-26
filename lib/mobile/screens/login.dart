@@ -1,15 +1,16 @@
+import 'package:engagefire/core/auth.dart';
 import 'package:engagefire/mobile.dart';
 import 'package:flutter/material.dart';
 
 
-class LoginScreen3 extends StatefulWidget {
+class EngageLoginScreen extends StatefulWidget {
   @override
-  _LoginScreen3State createState() => _LoginScreen3State();
+  _EngageLoginScreenState createState() => _EngageLoginScreenState();
 }
 
-class _LoginScreen3State extends State<LoginScreen3> with TickerProviderStateMixin {
+class _EngageLoginScreenState extends State<EngageLoginScreen> with TickerProviderStateMixin {
 
-    EngageFirestore auth = EngageFirestore.getInstance('profiles');
+    EngageAuth auth = EngageFire.auth;
     final emailController = TextEditingController();
     final passwordController = TextEditingController();
     final passwordAgainController = TextEditingController();
@@ -86,13 +87,13 @@ class _LoginScreen3State extends State<LoginScreen3> with TickerProviderStateMix
   @override
   void initState() {
     super.initState();
-    auth.getUser.then(
-      (user) {
-        if (user != null) {
-          Navigator.pushReplacementNamed(context, '/home');
-        }
-      },
-    );
+    // auth.getUser.then(
+    //   (user) {
+    //     if (user != null) {
+    //       Navigator.pushReplacementNamed(context, '/home');
+    //     }
+    //   },
+    // );
 
     //The code is commented because instead of manual scrolling with animation,
     //Now PageView is being used
