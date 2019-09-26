@@ -13,6 +13,7 @@ class EngageLoginScreen extends StatefulWidget {
   bool google = false;
   bool twitter = false;
   bool facebook = false;
+  String loggedInPage = '/home';
   EngageLoginScreen({
     Key key, 
     this.title, 
@@ -24,6 +25,7 @@ class EngageLoginScreen extends StatefulWidget {
     this.google,
     this.twitter,
     this.facebook,
+    this.loggedInPage,
     }) : super(key: key);
 
   @override
@@ -38,27 +40,29 @@ class _EngageLoginScreenState extends State<EngageLoginScreen> with TickerProvid
   final passwordAgainController = TextEditingController();
   bool large = false;
 
-  loginWithEmail(email, password) {
+  loginWithEmail(email, password) async {
     // final GoogleSignIn _googleSignIn = GoogleSignIn();
-    auth.emailSignIn(email: email, password: password);
+    await auth.emailSignIn(email: email, password: password);
+    goNext();
   }
 
   @override
   void initState() {
     super.initState();
     large = widget.google && widget.facebook && widget.twitter;
-    // auth.getUser.then(
-    //   (user) {
-    //     if (user != null) {
-    //       Navigator.pushReplacementNamed(context, '/home');
-    //     }
-    //   },
-    // );
+    goNext();
+  }
+
+  goNext() async {
+    if (await auth.currentUser != null) {
+      Navigator.pushReplacementNamed(context, widget.loggedInPage);
+    }
   }
 
   socialLogin(String name) {
     if (name.toLowerCase() == 'google') {
       auth.googleSignIn();
+      goNext();
     }
   }
 
