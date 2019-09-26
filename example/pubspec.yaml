@@ -43,9 +43,25 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #  - images/a_dot_burr.jpeg
-  #  - images/a_dot_ham.jpeg
+  assets:
+    - assets/images/lunge-with-dumbbell.jpg
+    - assets/images/rope-pullup.jpg
+    - assets/icon/alarm.svg
+    - assets/icon/birthday-cake.png
+    - assets/icon/chart.svg
+    - assets/icon/goals.svg
+    - assets/icon/icon.png
+    - assets/icon/icon.svg
+    - assets/icon/logo.png
+    - assets/icon/logo-icon.png
+    - assets/icon/logo.svg
+    - assets/icon/logo-icon.svg
+    - assets/icon/logo_beta.png
+    - assets/icon/logo_beta.svg
+    - assets/icon/scale.svg
+    - assets/icon/social-facebook.svg
+    - assets/icon/social-google.svg
+    - assets/icon/workout-reminder.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
