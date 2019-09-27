@@ -22,9 +22,9 @@ class EngageLoginScreen extends StatefulWidget {
     this.startBackground, 
     this.loginBackground, 
     this.signupBackground,
-    this.google,
-    this.twitter,
-    this.facebook,
+    this.google = false,
+    this.twitter = false,
+    this.facebook = false,
     this.loggedInPage,
     }) : super(key: key);
 
@@ -38,7 +38,7 @@ class _EngageLoginScreenState extends State<EngageLoginScreen> with TickerProvid
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final passwordAgainController = TextEditingController();
-  bool large = false;
+  int socialCount = 0;
 
   loginWithEmail(email, password) async {
     // final GoogleSignIn _googleSignIn = GoogleSignIn();
@@ -49,7 +49,9 @@ class _EngageLoginScreenState extends State<EngageLoginScreen> with TickerProvid
   @override
   void initState() {
     super.initState();
-    large = widget.google && widget.facebook && widget.twitter;
+    if (widget.google) socialCount++;
+    if (widget.facebook) socialCount++;
+    if (widget.twitter) socialCount++;
     goNext();
   }
 
@@ -59,10 +61,10 @@ class _EngageLoginScreenState extends State<EngageLoginScreen> with TickerProvid
     }
   }
 
-  socialLogin(String name) {
+  socialLogin(String name) async {
     if (name.toLowerCase() == 'google') {
-      auth.googleSignIn();
-      goNext();
+      var user = await auth.googleSignIn();
+      if (user != null) goNext();
     }
   }
 
@@ -93,15 +95,14 @@ class _EngageLoginScreenState extends State<EngageLoginScreen> with TickerProvid
                           ),
                           child: Row(
                             mainAxisAlignment:
-                                MainAxisAlignment.spaceEvenly,
+                                socialCount < 2 ? MainAxisAlignment.center : MainAxisAlignment.spaceEvenly,
                             children: <Widget>[
                               Icon(
-                                IconData(icon,
-                                    fontFamily: 'icomoon'),
+                                IconData(icon, fontFamily: 'icomoon'),
                                 color: Colors.white,
                                 size: 15.0,
                               ),
-                              if (!large) Text(
+                              if (socialCount < 3) Text(
                                 name,
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
@@ -648,7 +649,7 @@ class _EngageLoginScreenState extends State<EngageLoginScreen> with TickerProvid
           ),
           Container(
             width: MediaQuery.of(context).size.width,
-            margin: const EdgeInsets.only(left: 30.0, right: 30.0, top: 50.0),
+            margin: const EdgeInsets.only(left: 30.0, right: 30.0, top: 30.0),
             alignment: Alignment.center,
             child: Row(
               children: <Widget>[
