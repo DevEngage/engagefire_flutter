@@ -10,7 +10,7 @@ class EngageAuth {
     scopes: [
       'email',
       'profile',
-      'https://www.googleapis.com/auth/contacts.readonly',
+      // 'https://www.googleapis.com/auth/contacts.readonly',
     ],
   );
 
@@ -25,15 +25,14 @@ class EngageAuth {
     auth
    */
 
-  Future<FirebaseUser> get currentUser => EngageAuth.user ?? _auth.currentUser();
+  Future<FirebaseUser> get currentUser async => EngageAuth.user ?? await _auth.currentUser();
   Future<String> get currentUserId async => user != null ? EngageAuth.user.uid : (await currentUser).uid;
   Stream<FirebaseUser> get streamUser => _auth.onAuthStateChanged;
 
   Future<FirebaseUser> googleSignIn() async {
     try {
       var googleSignInAccount = await _googleSignIn.signIn();
-      var googleAuth =
-          await googleSignInAccount.authentication;
+      var googleAuth = await googleSignInAccount.authentication;
 
       final credential = GoogleAuthProvider.getCredential(
         accessToken: googleAuth.accessToken,
@@ -46,7 +45,7 @@ class EngageAuth {
 
       return user.user;
     } catch (error) {
-      print(error);
+      print('error: $error');
       return null;
     }
   }

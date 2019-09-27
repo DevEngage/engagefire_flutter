@@ -1,4 +1,5 @@
 import 'package:engagefire/mobile.dart';
+import 'package:engagefire/mobile/builders/formBuilder.dart';
 import 'package:engagefire/mobile/screens/login.dart';
 import 'package:example/utility/theme.dart';
 import 'package:flutter/material.dart';
@@ -38,7 +39,7 @@ class MyApp extends StatelessWidget {
           google: true,
           twitter: false,
         ),
-        // '/home': (context) => HomeScreen(),
+        '/home': (context) => FormBuilder(),
         // '/addFood': (context) => AddFoodPage(),
       },
       title: 'EngageFire Example',

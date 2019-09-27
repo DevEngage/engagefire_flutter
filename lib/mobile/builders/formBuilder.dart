@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:engage_admin/utils/color_constants.dart';
+// import 'package:engage_admin/utils/color_constants.dart';
 
 class FormBuilder extends StatefulWidget {
+  List model = [];
+  FormBuilder({
+    Key key, 
+    this.model, 
+    }) : super(key: key);
+
   @override
   _FormMaterialState createState() => _FormMaterialState();
 }
@@ -9,6 +15,30 @@ class FormBuilder extends StatefulWidget {
 class _FormMaterialState extends State<FormBuilder> {
   final _formKey = GlobalKey<FormState>();
   var _test = '';
+
+  Widget input() {
+    return TextFormField(
+      style: TextStyle(
+        fontFamily: 'HelveticaNeue',
+      ),
+      decoration: InputDecoration(
+        labelText: 'First name',
+        labelStyle: TextStyle(
+          fontSize: 18,
+          color: Colors.black,
+          fontWeight: FontWeight.bold,
+          fontFamily: 'HelveticaNeue',
+        ),
+      ),
+      validator: (value) {
+        if (value.isEmpty) {
+          return 'Please enter your first name';
+        }
+      },
+      onSaved: (val) =>
+          setState(() => _test = val),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,27 +57,7 @@ class _FormMaterialState extends State<FormBuilder> {
                       child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            TextFormField(
-                              style: TextStyle(
-                                fontFamily: 'HelveticaNeue',
-                              ),
-                              decoration: InputDecoration(
-                                labelText: 'First name',
-                                labelStyle: TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'HelveticaNeue',
-                                ),
-                              ),
-                              validator: (value) {
-                                if (value.isEmpty) {
-                                  return 'Please enter your first name';
-                                }
-                              },
-                              onSaved: (val) =>
-                                  setState(() => _test = val),
-                            ),
+                            input()
                             // TextFormField(
                             //   style: TextStyle(
                             //     fontFamily: 'HelveticaNeue',

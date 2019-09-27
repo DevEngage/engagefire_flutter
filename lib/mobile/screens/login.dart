@@ -25,7 +25,7 @@ class EngageLoginScreen extends StatefulWidget {
     this.google = false,
     this.twitter = false,
     this.facebook = false,
-    this.loggedInPage,
+    this.loggedInPage = '/home',
     }) : super(key: key);
 
   @override
@@ -46,6 +46,12 @@ class _EngageLoginScreenState extends State<EngageLoginScreen> with TickerProvid
     goNext();
   }
 
+  signupWithEmail(email, password, passwordAgain) async {
+    // final GoogleSignIn _googleSignIn = GoogleSignIn();
+    await auth.emailSignUp(email: email, password: password, passwordAgain: passwordAgain);
+    goNext();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -57,6 +63,7 @@ class _EngageLoginScreenState extends State<EngageLoginScreen> with TickerProvid
 
   goNext() async {
     if (await auth.currentUser != null) {
+      print(widget.loggedInPage);
       Navigator.pushReplacementNamed(context, widget.loggedInPage);
     }
   }
@@ -421,7 +428,7 @@ class _EngageLoginScreenState extends State<EngageLoginScreen> with TickerProvid
                       borderRadius: BorderRadius.circular(30.0),
                     ),
                     color: Theme.of(context).accentColor,
-                    onPressed: () => auth.emailSignIn(email: emailController.text, password: passwordController.text),
+                    onPressed: () => loginWithEmail(emailController.text, passwordController.text),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         vertical: 20.0,
@@ -659,7 +666,7 @@ class _EngageLoginScreenState extends State<EngageLoginScreen> with TickerProvid
                       borderRadius: BorderRadius.circular(30.0),
                     ),
                     color: Theme.of(context).primaryColor,
-                    onPressed: () => auth.emailSignUp(email: emailController.text, password: passwordController.text, passwordAgain: passwordAgainController.text),
+                    onPressed: () => signupWithEmail(emailController.text, passwordController.text, passwordAgainController.text),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         vertical: 20.0,
