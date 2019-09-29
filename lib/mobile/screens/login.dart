@@ -64,7 +64,7 @@ class _EngageLoginScreenState extends State<EngageLoginScreen> with TickerProvid
   goNext() async {
     if (await auth.currentUser != null) {
       print(widget.loggedInPage);
-      Navigator.pushReplacementNamed(context, widget.loggedInPage);
+      Navigator.pushNamed(context, widget.loggedInPage);
     }
   }
 
