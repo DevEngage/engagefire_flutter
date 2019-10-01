@@ -34,7 +34,7 @@ class EngageDoc {
   }
   
   static Future<EngageDoc> get({String path, Map data, List<String> subCollections}) async {
-    EngageDoc doc = EngageDoc();
+    EngageDoc doc = EngageDoc(ignoreInit: true);
     await doc.$$setupDoc(path, data, subCollections);
     return doc;
   }
