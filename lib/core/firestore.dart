@@ -325,7 +325,7 @@ class EngageFirestore {
         // print(error)
         return setDoc(doc, docRef: documentRef);
       }
-    } else if (docRef.id == null && doc['\$id'] == null) {
+    } else if (!(doc is EngageDoc) && docRef.id == null && doc['\$id'] == null) {
       print('no id');
     }
     if (debug) {
@@ -357,7 +357,7 @@ class EngageFirestore {
     }
     dynamic doc;
     try {
-      if (newDoc != null && newDoc['\$id'] != null) {
+      if ((newDoc is EngageDoc && newDoc.$id != null) || (newDoc != null && newDoc['\$id'] != null)) {
         doc = await update(newDoc, docRef: listRef);
       } else if (listRef != null && listRef.id != null) {
         doc = await setDoc(newDoc, docRef: listRef);
