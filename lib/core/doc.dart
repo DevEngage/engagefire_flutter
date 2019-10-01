@@ -2,12 +2,14 @@
 
 import 'dart:io';
 import 'package:engagefire/core/firestore.dart';
+import 'package:engagefire/core/pubsub.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'auth.dart';
 import 'engagefire.dart';
 
 class EngageDoc {
   static Map<String, EngageDoc> instances = {};
+  final EngagePubsub _ps = engagePubsub;
   dynamic $ref;
   dynamic $docRef;
   dynamic $collectionRef;
@@ -29,7 +31,7 @@ class EngageDoc {
     '\$collection': '',
   };
 
-  EngageDoc({String path, Map data, List<String> subCollections, defaultData, ignoreInit = false}) {
+  EngageDoc({String path, Map data, List<String> subCollections, ignoreInit = false}) {
     if (!ignoreInit && path != null) this.$$setupDoc(path, data, subCollections);
   }
   
@@ -96,7 +98,9 @@ class EngageDoc {
   Future $save([data]) {
     if (data != null) this.$$updateDoc(data);
     try {
-      return this.$engageFireStore.save(this);
+      dynamic saved = this.$engageFireStore.save(this);
+      $publish($doc);
+      return saved;
     } catch (error) {
       print('EngageDoc.save: $error');
     }
@@ -315,6 +319,14 @@ class EngageDoc {
       }
     });
     return changed;
+  }
+
+  $subscribe(Function listener) {
+    _ps.subscribe($path, listener);
+  }
+
+  $publish(data) {
+    _ps.publish(data, $path);
   }
 
   $$getSortedParentList() {
