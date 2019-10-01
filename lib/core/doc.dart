@@ -39,7 +39,9 @@ class EngageDoc {
     EngageDoc doc = EngageDoc(ignoreInit: true);
     await doc.$$setupDoc(path, data, subCollections);
     if (defaultData != null) {
-      doc.$setDefaults(defaultData);
+      if (doc.$setDefaults(defaultData)) {
+        doc.$publish(doc.$doc);
+      }
     }
     if (saveDefaults) {
       await doc.$save();
