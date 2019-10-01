@@ -73,7 +73,7 @@ class EngageDoc {
       path = pathList.join('/');
       this.$path = path;
       this.$engageFireStore = EngageFirestore.getInstance(path);
-      data = await this.$engageFireStore.get(docId);
+      data = await this.$engageFireStore.get(this.$engageFireStore.getStringVar(docId));
     } else if (path != null) {
       this.$path = path;
       this.$engageFireStore = EngageFirestore.getInstance(path);
