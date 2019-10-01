@@ -263,14 +263,14 @@ class EngageFirestore {
         else this.list.add(fireDoc);
         return fireDoc;
       }
-      return add({'\$updatedAt': DateTime.now().millisecondsSinceEpoch, '\$id': docId}, docRef: listRef);
+      return setDoc({'\$updatedAt': DateTime.now().millisecondsSinceEpoch, '\$id': docId}, docRef: listRef);
     } catch (error) {
       print(error);
       return null;
     }
   }
 
-  Future<dynamic> add(dynamic newDoc, {dynamic docRef}) async {
+  Future<dynamic> add(dynamic newDoc, {dynamic docRef, blank = true}) async {
     docRef ??= ref;
     if (newDoc != null && newDoc['\$id'] != null) {
       return this.update(newDoc, docRef: docRef);
