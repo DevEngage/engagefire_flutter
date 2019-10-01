@@ -29,8 +29,14 @@ class EngageDoc {
     '\$collection': '',
   };
 
-  EngageDoc({String path, Map data, List<String> subCollections}) {
-    this.$$setupDoc(path, data, subCollections);
+  EngageDoc({String path, Map data, List<String> subCollections, ignoreInit = false}) {
+    if (!ignoreInit) this.$$setupDoc(path, data, subCollections);
+  }
+  
+  static Future<EngageDoc> get({String path, Map data, List<String> subCollections}) async {
+    EngageDoc doc = EngageDoc();
+    await doc.$$setupDoc(path, data, subCollections);
+    return doc;
   }
 
   Future<void> $$init() async {
