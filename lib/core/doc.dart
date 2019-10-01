@@ -51,8 +51,9 @@ class EngageDoc {
   $$setupDoc([String path = '', data, subCollections]) async {
     List pathList = path.split('/');
     bool isDocPath = pathList.length % 2 == 0;
+    String docId;
     if (isDocPath) {
-      String docId = pathList.removeLast();
+      docId = pathList.removeLast();
       path = pathList.join('/');
       this.$path = path;
       this.$engageFireStore = EngageFirestore.getInstance(path);
@@ -63,6 +64,8 @@ class EngageDoc {
     }
     if (data != null) {
       this.$doc = {...$doc, ...data};
+    } else if (docId != null) {
+      this.$doc = {...$doc, '\$updatedAt': DateTime.now().millisecondsSinceEpoch, '\$id': this.$engageFireStore.getStringVar(docId)};
     }
     if (subCollections != null) {
       this.$collectionsList = subCollections;

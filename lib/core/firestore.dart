@@ -246,6 +246,13 @@ class EngageFirestore {
     return doc;
   }
 
+  getStringVar(String what) {
+    if (what.contains('{userId}') || what.contains('{\$userId}')) {
+      return userId;
+    }
+    return what;
+  }
+
   Future<dynamic> get(String docId, {CollectionReference listRef, blank = true, }) async {
     $loading = true;
     listRef ??= ref;
