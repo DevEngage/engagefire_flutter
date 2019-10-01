@@ -33,7 +33,7 @@ class EngagePubsub {
     if (what == 'all') {
       this.listeners.forEach((key, value) => value.forEach((Function listener) => listener(data)));
     } else {
-      (this.listeners[what] ?? []).forEach((Function listener) => listener(data));
+      (this.listeners[what] ?? []).forEach((Function listener) => listener is Function ? listener(data) : null);
     }
   }
 
