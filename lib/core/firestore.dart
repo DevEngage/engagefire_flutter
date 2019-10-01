@@ -334,7 +334,7 @@ class EngageFirestore {
     try {
       doc = omitFire(doc);
       if (doc is EngageDoc) {
-        await doc.$docRef.setData(doc.$doc, merge: true);
+        documentRef = await doc.$docRef.setData(doc.$doc, merge: true);
       } else {
         documentRef = docRef.document(doc['\$id']);
         await documentRef.setData(doc, merge: true);
