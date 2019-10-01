@@ -55,8 +55,8 @@ class EngageDoc {
   }
 
   $$setupDoc([String path = '', data, subCollections]) async {
-    List pathList = path.split('/');
-    bool isDocPath = pathList.length % 2 == 0;
+    List pathList = (path ?? '').split('/');
+    bool isDocPath = pathList.length > 0 && pathList.length % 2 == 0;
     String docId;
     if (isDocPath) {
       docId = pathList.removeLast();
@@ -126,7 +126,7 @@ class EngageDoc {
     return this.$doc['\$owner'] == (await EngageAuth().currentUserId);
   }
 
-  Future<dynamic> $(String key, {dynamic value, int increment, int decrement, save = true, done, defaultValue}) async {
+  Future<dynamic> $(String key, {dynamic value, dynamic defaultValue, int increment, int decrement, save = true, done}) async {
     if (increment != null && increment > 0) {
       value ??= this.$doc[key] ?? 0;
       value += increment;
