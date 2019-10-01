@@ -249,6 +249,9 @@ class EngageFirestore {
   Future<dynamic> get(String docId, {CollectionReference listRef, blank = true, }) async {
     $loading = true;
     listRef ??= ref;
+    if (docId.contains('{userId}') || docId.contains('{\$userId}')) {
+      docId = userId;
+    }
     try {
       DocumentSnapshot doc;
       doc = await listRef.document(docId).get();
@@ -269,7 +272,7 @@ class EngageFirestore {
 
   Future<dynamic> add(dynamic newDoc, {dynamic docRef}) async {
     docRef ??= ref;
-    if (newDoc != null && newDoc.$id != null) {
+    if (newDoc != null && newDoc['\$id'] != null) {
       return this.update(newDoc, docRef: docRef);
     }
     if (debug) {
@@ -315,7 +318,7 @@ class EngageFirestore {
         // print(error)
         return setDoc(doc, docRef: documentRef);
       }
-    } else if (docRef.id == null && doc.$id == null) {
+    } else if (docRef.id == null && doc['\$id'] == null) {
       print('no id');
     }
     if (debug) {
@@ -347,7 +350,7 @@ class EngageFirestore {
     }
     dynamic doc;
     try {
-      if (newDoc != null && newDoc.$id != null) {
+      if (newDoc != null && newDoc['\$id'] != null) {
         doc = await update(newDoc, docRef: listRef);
       } else if (listRef != null && listRef.id != null) {
         doc = await setDoc(newDoc, docRef: listRef);
