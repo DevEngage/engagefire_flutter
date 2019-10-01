@@ -303,7 +303,7 @@ class EngageFirestore {
     } else {
       newDoc['\$createdAt'] = DateTime.now().millisecondsSinceEpoch;
       newDoc['\$timezoneOffset'] = DateTime.now().timeZoneOffset;
-      await docRef.setData(newDoc);
+      await docRef.document(newDoc).setData(newDoc);
     }
     return addFire(newDoc, docRef.documentID);
   }
