@@ -270,7 +270,7 @@ class EngageFirestore {
     }
   }
 
-  Future<dynamic> add(dynamic newDoc, {dynamic docRef, blank = true}) async {
+  Future<dynamic> add(dynamic newDoc, {dynamic docRef}) async {
     docRef ??= ref;
     if (newDoc != null && newDoc['\$id'] != null) {
       return this.update(newDoc, docRef: docRef);

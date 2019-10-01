@@ -30,17 +30,7 @@ class EngageDoc {
   };
 
   EngageDoc({String path, Map data, List<String> subCollections}) {
-    if (path != null) {
-      this.$path = path;
-      this.$engageFireStore = EngageFirestore.getInstance(path);
-    }
-    if (data != null) {
-      this.$doc = {...$doc, ...data};
-    }
-    if (subCollections != null) {
-      this.$collectionsList = subCollections;
-    }
-    this.$$init();
+    this.$$setupDoc(path, data, subCollections);
   }
 
   Future<void> $$init() async {
@@ -56,6 +46,28 @@ class EngageDoc {
 
     (this.$collectionsList ?? []).forEach($buildCollections);
     this.$loading = false;
+  }
+
+  $$setupDoc([String path = '', data, subCollections]) async {
+    List pathList = path.split('/');
+    bool isDocPath = pathList.length % 2 == 0;
+    if (isDocPath) {
+      String docId = pathList.removeLast();
+      path = pathList.join('/');
+      this.$path = path;
+      this.$engageFireStore = EngageFirestore.getInstance(path);
+      data = await this.$engageFireStore.get(docId);
+    } else if (path != null) {
+      this.$path = path;
+      this.$engageFireStore = EngageFirestore.getInstance(path);
+    }
+    if (data != null) {
+      this.$doc = {...$doc, ...data};
+    }
+    if (subCollections != null) {
+      this.$collectionsList = subCollections;
+    }
+    await this.$$init();
   }
 
   $buildCollections(element) {
