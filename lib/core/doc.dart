@@ -29,13 +29,19 @@ class EngageDoc {
     '\$collection': '',
   };
 
-  EngageDoc({String path, Map data, List<String> subCollections, ignoreInit = false}) {
+  EngageDoc({String path, Map data, List<String> subCollections, defaultData, ignoreInit = false}) {
     if (!ignoreInit && path != null) this.$$setupDoc(path, data, subCollections);
   }
   
-  static Future<EngageDoc> get({String path, Map data, List<String> subCollections}) async {
+  static Future<EngageDoc> get({String path, Map data, List<String> subCollections, Map defaultData, bool saveDefaults = false}) async {
     EngageDoc doc = EngageDoc(ignoreInit: true);
     await doc.$$setupDoc(path, data, subCollections);
+    if (defaultData != null) {
+      doc.$setDefaults(defaultData);
+    }
+    if (saveDefaults) {
+      await doc.$save();
+    }
     return doc;
   }
 
@@ -298,6 +304,17 @@ class EngageDoc {
     $doc['position'] = index;
     position = index;
     return $save($doc);
+  }
+
+  bool $setDefaults(Map data) {
+    bool changed = false;
+    data.forEach((key, value) {
+      if ($doc[key] == null && value != null) {
+        $doc[key] = value;
+        changed = true;
+      }
+    });
+    return changed;
   }
 
   $$getSortedParentList() {
