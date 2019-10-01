@@ -126,7 +126,7 @@ class EngageDoc {
     return this.$doc['\$owner'] == (await EngageAuth().currentUserId);
   }
 
-  Future<dynamic> $(String key, {dynamic value, dynamic defaultValue, int increment, int decrement, save = true, done}) async {
+  Future<dynamic> $(String key, {dynamic value, dynamic defaultValue, int increment, int decrement, Function done, save = true}) async {
     if (increment != null && increment > 0) {
       value ??= this.$doc[key] ?? 0;
       value += increment;
