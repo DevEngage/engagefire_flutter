@@ -10,7 +10,7 @@ class EngagePubsub {
   static var ads;
   static var auth;
   static EngagePubsub instance;
-  Map<String, List> listeners = {};
+  Map<String, List<Function>> listeners = {};
   var data = {};
 
   static init({app, storage, ads, auth}) {
@@ -20,10 +20,10 @@ class EngagePubsub {
     EngagePubsub.auth = auth;
   }
 
-  subscribe([String what = 'all', var listener]) {
+  subscribe([String what = 'all', Function listener]) {
     if (this.listeners[what] == null) this.listeners[what] = [];
     this.listeners[what].add(listener);
-    if (what != 'all' && this.data[what]) {
+    if (what != 'all' && this.data[what] != null) {
       listener(this.data[what]);
     }
   }
@@ -31,9 +31,9 @@ class EngagePubsub {
   publish([var data, what = 'all']) {
     this.data[what] = data;
     if (what == 'all') {
-      this.listeners.forEach((key, value) => value.forEach((var listener) => listener(data)));
+      this.listeners.forEach((key, value) => value.forEach((Function listener) => listener(data)));
     } else {
-      (this.listeners[what] ?? []).forEach((var listener) => listener(data));
+      (this.listeners[what] ?? []).forEach((Function listener) => listener(data));
     }
   }
 
