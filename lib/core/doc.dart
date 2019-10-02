@@ -328,7 +328,8 @@ class EngageDoc {
     _ps.subscribe($path, listener);
   }
 
-  $publish(data) {
+  $publish([data]) {
+    data ??= $doc;
     _ps.publish(data, $path);
   }
 
