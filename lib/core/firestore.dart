@@ -246,18 +246,22 @@ class EngageFirestore {
     return doc;
   }
 
-  getStringVar(String what) {
+  getStringVar(String what, [replaceWith]) {
     if (what.contains('{userId}') || what.contains('{\$userId}')) {
-      return userId;
+      return replaceWith ?? userId;
     }
     return what;
   }
 
-  Future<dynamic> get(String docId, {CollectionReference listRef, blank = true, }) async {
+  Future<dynamic> get(String docId, {CollectionReference listRef, blank = true, pure}) async {
     $loading = true;
     listRef ??= ref;
     if (docId.contains('{userId}') || docId.contains('{\$userId}')) {
-      docId = userId;
+      docId = await EngageAuth().currentUserId;
+    }
+    if (pure) {
+      dynamic doc = await listRef.document(docId).get();
+      return doc.exists ? doc.data : {};
     }
     try {
       DocumentSnapshot doc;
