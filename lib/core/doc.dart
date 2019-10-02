@@ -25,6 +25,7 @@ class EngageDoc {
   List<String> $omitList = [];
   List relations = [];
   int position;
+  Map namedListener = { };
   Map<String, dynamic> $doc = {
     '\$owner': '',
     '\$id': '',
@@ -324,13 +325,26 @@ class EngageDoc {
     return changed;
   }
 
-  $subscribe(Function listener) {
+  $subscribe(Function listener, name) {
+    if (name != null) {
+      namedListener[name] = listener;
+    }
     _ps.subscribe($path, listener);
   }
 
   $publish([data]) {
     data ??= $doc;
     _ps.publish(data, $path);
+  }
+
+  $unsubscribe({String name, Function listener}) {
+    if (name != null && namedListener[name] != null) {
+      _ps.unsubscribe($path, namedListener[name]);
+      namedListener.remove(name);
+    } else if (listener != null) {
+      _ps.unsubscribe($path, listener);
+    }
+    
   }
 
   $$getSortedParentList() {

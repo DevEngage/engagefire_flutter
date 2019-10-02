@@ -37,6 +37,11 @@ class EngagePubsub {
     }
   }
 
+  unsubscribe(String what, Function listener) {
+    if (listeners[what] == null) return;
+    listeners[what].remove(listener);
+  }
+
   get([String what = 'all']) {
     if (what == 'all') {
       return this.data;
