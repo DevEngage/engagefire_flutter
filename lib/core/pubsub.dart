@@ -11,6 +11,7 @@ class EngagePubsub {
   static var auth;
   static EngagePubsub instance;
   Map<String, List<Function>> listeners = {};
+  var listenerFunctions = {};
   var data = {};
 
   static init({app, storage, ads, auth}) {
@@ -20,11 +21,14 @@ class EngagePubsub {
     EngagePubsub.auth = auth;
   }
 
-  subscribe([String what = 'all', Function listener]) {
+  subscribe([String what = 'all', Function listener, String name]) {
     if (this.listeners[what] == null) this.listeners[what] = [];
     this.listeners[what].add(listener);
     if (what != 'all' && this.data[what] != null) {
       listener(this.data[what]);
+    }
+    if (listener != null && name != null) {
+      listenerFunctions['$what/$name'] = listener;
     }
   }
 
@@ -40,6 +44,12 @@ class EngagePubsub {
   unsubscribe(String what, Function listener) {
     if (listeners[what] == null) return;
     listeners[what].remove(listener);
+  }
+
+  unsubscribeName([String what = 'all', String name]) {
+    if (listeners['$what/$name'] == null) return;
+    listeners.remove(listenerFunctions['$what/$name']);
+    listenerFunctions.remove('$what/$name');
   }
 
   get([String what = 'all']) {
