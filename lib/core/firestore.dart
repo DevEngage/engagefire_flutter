@@ -105,10 +105,12 @@ class EngageFirestore {
 
   buildQuery(List list) {
     list.reduce((last, current) {
+      last ??= ref;
       if (true) {
-        
+
       }
-    }, ref);
+      return last;
+    });
   }
 
   Future<List> getList([CollectionReference listRef]) async {
