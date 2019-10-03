@@ -58,13 +58,13 @@ class EngageDoc {
     EngageDoc found = await docs.getFirst(filter: filter);
     String userId = await EngageAuth().currentUserId;
     if (found == null) {
-      doc = EngageDoc(ignoreInit: true);
+      doc = await docs.add({});
     } else {
       doc = found;
       data = found.$doc;
       subCollections = found.$collectionsList;
     }
-    await doc.$$setupDoc(path, data, subCollections);
+    await doc.$$setupDoc(doc.$path, data, subCollections);
     if (defaultData != null) {
       if (doc.$setDefaults(defaultData, userId)) {
         doc.$publish(doc.$doc);

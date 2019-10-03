@@ -351,7 +351,7 @@ class EngageFirestore {
     DocumentReference blank = docRef.document();
     newDoc['\$createdAt'] = DateTime.now().millisecondsSinceEpoch;
     newDoc['\$timezoneOffset'] = DateTime.now().timeZoneOffset;
-    await blank.setData(newDoc);
+    await blank.setData(newDoc as Map<String, dynamic>);
     return this.addFire(newDoc, blank.documentID);
   }
 
@@ -360,13 +360,13 @@ class EngageFirestore {
       print('set $newDoc');
     }
     newDoc = omitFire(newDoc);
+    newDoc['\$createdAt'] = DateTime.now().millisecondsSinceEpoch;
+    newDoc['\$timezoneOffset'] = DateTime.now().timeZoneOffset;
     if (newDoc is EngageDoc) {
       docRef ??= newDoc.$docRef;
       await docRef.setData(newDoc.$doc);
     } else {
-      newDoc['\$createdAt'] = DateTime.now().millisecondsSinceEpoch;
-      newDoc['\$timezoneOffset'] = DateTime.now().timeZoneOffset;
-      await docRef.document(newDoc).setData(newDoc);
+      await docRef.document(newDoc).setData(newDoc as Map<String, dynamic>);
     }
     return addFire(newDoc, docRef.documentID);
   }
@@ -401,7 +401,7 @@ class EngageFirestore {
         documentRef = await doc.$docRef.setData(doc.$doc, merge: true);
       } else {
         documentRef = docRef.document(doc['\$id']);
-        await documentRef.setData(doc, merge: true);
+        await documentRef.setData(doc as Map<String, dynamic>, merge: true);
       }
       return addFire(doc, documentRef.documentID);
     } catch (error) {
