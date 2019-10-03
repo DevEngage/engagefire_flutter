@@ -103,17 +103,31 @@ class EngageFirestore {
     return this;
   }
 
-  buildQuery(List list) {
-    list.reduce((last, current) {
+  buildQuery(Map filter) {
+    return list.reduce((last, current) {
       last ??= ref;
-      if (true) {
+      if (current) {
 
       }
       return last;
     });
   }
 
+  /* 
+  where('grower', isEqualTo: 1)
+    String field, {
+    dynamic isEqualTo,
+    dynamic isLessThan,
+    dynamic isLessThanOrEqualTo,
+    dynamic isGreaterThan,
+    dynamic isGreaterThanOrEqualTo,
+    bool isNull,
+     */
+
   Future<List> getList([CollectionReference listRef]) async {
+    buildQuery({
+      'isEqual': ['tset', 'test']
+    });
     $loading = true;
     listRef ??= ref;
     QuerySnapshot collection;
