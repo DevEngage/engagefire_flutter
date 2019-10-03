@@ -103,14 +103,39 @@ class EngageFirestore {
     return this;
   }
 
-  buildQuery(Map filter) {
-    return list.reduce((last, current) {
-      last ??= ref;
-      if (current) {
-
+  /* 
+  field.isEqualTo: 1
+  */
+  buildQuery(Map filter, [customRef]) {
+    customRef ??= ref;
+    filter.forEach((key, value) {
+      List<String> keys = key.split('.');
+      String field = keys[0];
+      String type = keys[1];
+      switch (type) {
+        case 'isEqualTo':
+          customRef.where(field, isEqualTo: value);
+          break;
+        case 'isLessThan':
+          customRef.where(field, isLessThan: value);
+          break;
+        case 'isLessThanOrEqualTo':
+          customRef.where(field, isLessThanOrEqualTo: value);
+          break;
+        case 'isGreaterThan':
+          customRef.where(field, isGreaterThan: value);
+          break;
+        case 'isGreaterThanOrEqualTo':
+          customRef.where(field, isGreaterThanOrEqualTo: value);
+          break;
+        case 'isNull':
+          customRef.where(field, isNull: value);
+          break;
       }
-      return last;
+      if (key == 'isEqualTo') {
+      }
     });
+    return customRef;
   }
 
   /* 
@@ -124,12 +149,15 @@ class EngageFirestore {
     bool isNull,
      */
 
-  Future<List> getList([CollectionReference listRef]) async {
-    buildQuery({
-      'isEqual': ['tset', 'test']
-    });
+  Future<EngageDoc> getFirst({CollectionReference listRef, Map filter}) async {
+    var item = await getList(listRef: listRef, filter: filter, limit: 0);
+    return item.isEmpty ? null : item[0];
+  }
+
+  Future<List> getList({CollectionReference listRef, Map filter, limit}) async {
     $loading = true;
-    listRef ??= ref;
+    listRef ??= filter != null ? buildQuery(filter) : ref;
+    if (limit != null) listRef.limit(limit);
     QuerySnapshot collection;
     collection = await listRef.getDocuments();
     list = await this.addFireList(collection);
@@ -242,7 +270,7 @@ class EngageFirestore {
 
   Future getListByPosition([bool direction = false]) async {
     var ref = this.ref.orderBy('position', descending: direction);
-    return this.getList(ref);
+    return this.getList(listRef: ref);
   }
 
   Future buildListPositions() async {
