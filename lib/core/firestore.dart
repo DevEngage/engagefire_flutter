@@ -131,6 +131,12 @@ class EngageFirestore {
         case 'isNull':
           customRef.where(field, isNull: value);
           break;
+        case 'isInDay':
+          var day = new Duration(days: 1);
+          var prev = DateTime.fromMillisecondsSinceEpoch(value).subtract(day);
+          var next = DateTime.fromMillisecondsSinceEpoch(value).add(day);
+          customRef.where(field, isNull: value);
+          break;
       }
       if (key == 'isEqualTo') {
       }

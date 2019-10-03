@@ -39,8 +39,9 @@ class EngageDoc {
   static Future<EngageDoc> get({String path, Map data, List<String> subCollections, Map defaultData, bool saveDefaults = false}) async {
     EngageDoc doc = EngageDoc(ignoreInit: true);
     await doc.$$setupDoc(path, data, subCollections);
+    String userId = await EngageAuth().currentUserId;
     if (defaultData != null) {
-      if (doc.$setDefaults(defaultData)) {
+      if (doc.$setDefaults(defaultData, userId)) {
         doc.$publish(doc.$doc);
       }
     }
@@ -51,9 +52,11 @@ class EngageDoc {
   }
   
   static Future<EngageDoc> getOrCreate({String path, Map data, List<String> subCollections, Map defaultData, Map filter}) async {
+    defaultData = $$mapDefaultsFromFilter(defaultData, filter);
     EngageFirestore docs = await EngageFirestore.getInstance(path);
     EngageDoc doc;
     EngageDoc found = await docs.getFirst(filter: filter);
+    String userId = await EngageAuth().currentUserId;
     if (found == null) {
       doc = EngageDoc(ignoreInit: true);
     } else {
@@ -63,7 +66,7 @@ class EngageDoc {
     }
     await doc.$$setupDoc(path, data, subCollections);
     if (defaultData != null) {
-      if (doc.$setDefaults(defaultData)) {
+      if (doc.$setDefaults(defaultData, userId)) {
         doc.$publish(doc.$doc);
       }
     }
@@ -92,7 +95,6 @@ class EngageDoc {
     List pathList = (path ?? '').split('/');
     bool isDocPath = pathList.length > 0 && pathList.length % 2 == 0;
     String docId;
-    bool docIdTest;
     if (isDocPath) {
       docId = pathList.removeLast();
       path = pathList.join('/');
@@ -337,11 +339,11 @@ class EngageDoc {
     return $save($doc);
   }
 
-  bool $setDefaults(Map data) {
-    bool changed = false;
+  bool $setDefaults(Map data, [stringVarDefault]) {
+    var changed = false;
     data.forEach((key, value) {
       if ($doc[key] == null && value != null) {
-        $doc[key] = value;
+        $doc[key] = this.$engageFireStore.getStringVar(value, stringVarDefault);
         changed = true;
       }
     });
@@ -376,5 +378,20 @@ class EngageDoc {
 
   $$difference(Map object, base) {
     return object == base;
+  }
+
+  static $$mapDefaultsFromFilter(Map defaults, Map filter) {
+    if (filter != null) {
+      defaults ??= {};
+      filter.forEach((key, value) {
+        if (defaults[key] == null) {
+          var keys = key.split('.');
+          if (keys[0] != null && keys[2] == 'default') {
+            defaults[keys[0]] = value;
+          }
+        }
+      });
+    }
+    return defaults;
   }
 }
