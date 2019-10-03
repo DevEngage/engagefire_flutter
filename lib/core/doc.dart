@@ -350,7 +350,7 @@ class EngageDoc {
     return changed;
   }
 
-  $subscribe(Function listener, [name]) {
+  $subscribe(Function listener, {String name, bool listen}) {
     if (name != null) {
       namedListener[name] = listener;
     }
