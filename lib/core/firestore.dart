@@ -179,7 +179,7 @@ class EngageFirestore {
     return list;
   }
 
-  addFire(data, String id) {
+  addFire(data, String id, {ignoreInit}) {
     if (data == null && id != null) {
       if (data is EngageDoc) {
         data.$id = id;
@@ -189,7 +189,7 @@ class EngageFirestore {
       }
     }
     if (EngageDoc != null && data is Map) {
-      return EngageDoc(data: data, path: path, subCollections: subCollections);
+      return EngageDoc(data: data, path: path, subCollections: subCollections, ignoreInit: ignoreInit);
     }
     return data;
   }
@@ -339,7 +339,7 @@ class EngageFirestore {
     }
   }
 
-  Future<dynamic> add(Map<String, dynamic> newDoc, {dynamic docRef}) async {
+  Future<dynamic> add(Map<String, dynamic> newDoc, {dynamic docRef, ignoreInit}) async {
     docRef ??= ref;
     if (newDoc != null && newDoc['\$id'] != null) {
       return this.update(newDoc, docRef: docRef);
@@ -351,8 +351,9 @@ class EngageFirestore {
     DocumentReference blank = docRef.document();
     newDoc['\$createdAt'] = DateTime.now().millisecondsSinceEpoch;
     newDoc['\$timezoneOffset'] = DateTime.now().timeZoneOffset.toString();
+    newDoc['\$id'] = blank.documentID;
     await blank.setData(newDoc);
-    return this.addFire(newDoc, blank.documentID);
+    return this.addFire(newDoc, blank.documentID, ignoreInit: ignoreInit);
   }
 
   Future<dynamic> setDoc(dynamic newDoc, {dynamic docRef}) async {
