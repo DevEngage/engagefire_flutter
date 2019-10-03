@@ -103,6 +103,14 @@ class EngageFirestore {
     return this;
   }
 
+  buildQuery(List list) {
+    list.reduce((last, current) {
+      if (true) {
+        
+      }
+    }, ref);
+  }
+
   Future<List> getList([CollectionReference listRef]) async {
     $loading = true;
     listRef ??= ref;

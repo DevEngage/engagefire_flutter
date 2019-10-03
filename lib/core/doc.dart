@@ -49,6 +49,23 @@ class EngageDoc {
     }
     return doc;
   }
+  
+  static Future<EngageDoc> getOrCreate({String path, Map data, List<String> subCollections, Map defaultData, bool saveDefaults = false, List filter}) async {
+    EngageFirestore docs = await EngageFirestore.getInstance(path)
+    // var ref = filter.reduce((last, current) => docs.ref.where('', isEqualTo: isEqualTo))
+    // List list = docs.getList(ref);
+    EngageDoc doc = EngageDoc(ignoreInit: true);
+    await doc.$$setupDoc(path, data, subCollections);
+    if (defaultData != null) {
+      if (doc.$setDefaults(defaultData)) {
+        doc.$publish(doc.$doc);
+      }
+    }
+    if (saveDefaults) {
+      await doc.$save();
+    }
+    return doc;
+  }
 
   Future<void> $$init() async {
     this.$id = this.$doc['\$id'] ?? this.$doc['id'] ?? this.$id;
