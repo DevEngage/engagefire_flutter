@@ -350,7 +350,7 @@ class EngageFirestore {
     newDoc = this.omitFire(newDoc);
     DocumentReference blank = docRef.document();
     newDoc['\$createdAt'] = DateTime.now().millisecondsSinceEpoch;
-    newDoc['\$timezoneOffset'] = DateTime.now().timeZoneOffset;
+    newDoc['\$timezoneOffset'] = DateTime.now().timeZoneOffset.toString();
     await blank.setData(newDoc);
     return this.addFire(newDoc, blank.documentID);
   }
@@ -361,7 +361,7 @@ class EngageFirestore {
     }
     newDoc = omitFire(newDoc);
     newDoc['\$createdAt'] = DateTime.now().millisecondsSinceEpoch;
-    newDoc['\$timezoneOffset'] = DateTime.now().timeZoneOffset;
+    newDoc['\$timezoneOffset'] = DateTime.now().timeZoneOffset.toString();
     if (newDoc is EngageDoc) {
       docRef ??= newDoc.$docRef;
       await docRef.setData(newDoc.$doc);
