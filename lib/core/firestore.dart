@@ -339,7 +339,7 @@ class EngageFirestore {
     }
   }
 
-  Future<dynamic> add(dynamic newDoc, {dynamic docRef}) async {
+  Future<dynamic> add(Map<String, dynamic> newDoc, {dynamic docRef}) async {
     docRef ??= ref;
     if (newDoc != null && newDoc['\$id'] != null) {
       return this.update(newDoc, docRef: docRef);
@@ -351,7 +351,7 @@ class EngageFirestore {
     DocumentReference blank = docRef.document();
     newDoc['\$createdAt'] = DateTime.now().millisecondsSinceEpoch;
     newDoc['\$timezoneOffset'] = DateTime.now().timeZoneOffset;
-    await blank.setData(newDoc as Map<String, dynamic>);
+    await blank.setData(newDoc);
     return this.addFire(newDoc, blank.documentID);
   }
 
