@@ -304,8 +304,8 @@ class EngageFirestore {
     return doc;
   }
 
-  getStringVar(String what, [replaceWith]) {
-    if (what.contains('{userId}') || what.contains('{\$userId}')) {
+  getStringVar(dynamic what, [replaceWith]) {
+    if (what is String && (what.contains('{userId}') || what.contains('{\$userId}'))) {
       return replaceWith ?? userId;
     }
     return what;
