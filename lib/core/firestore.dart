@@ -114,28 +114,28 @@ class EngageFirestore {
       String type = keys[1];
       switch (type) {
         case 'isEqualTo':
-          customRef.where(field, isEqualTo: value);
+          customRef = customRef.where(field, isEqualTo: value);
           break;
         case 'isLessThan':
-          customRef.where(field, isLessThan: value);
+          customRef = customRef.where(field, isLessThan: value);
           break;
         case 'isLessThanOrEqualTo':
-          customRef.where(field, isLessThanOrEqualTo: value);
+          customRef = customRef.where(field, isLessThanOrEqualTo: value);
           break;
         case 'isGreaterThan':
-          customRef.where(field, isGreaterThan: value);
+          customRef = customRef.where(field, isGreaterThan: value);
           break;
         case 'isGreaterThanOrEqualTo':
-          customRef.where(field, isGreaterThanOrEqualTo: value);
+          customRef = customRef.where(field, isGreaterThanOrEqualTo: value);
           break;
         case 'isNull':
-          customRef.where(field, isNull: value);
+          customRef = customRef.where(field, isNull: value);
           break;
         case 'isInDay':
           var day = new Duration(days: 1);
           var prev = DateTime.fromMillisecondsSinceEpoch(value).subtract(day);
           var next = DateTime.fromMillisecondsSinceEpoch(value).add(day);
-          customRef.where(field, isNull: value);
+          customRef = customRef.where(field, isNull: value);
           break;
       }
       if (key == 'isEqualTo') {
