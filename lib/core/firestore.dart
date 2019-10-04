@@ -144,14 +144,14 @@ class EngageFirestore {
     return customRef;
   }
 
-  getFilterDefaults(Map defaults, Map filter) {
+  getFilterDefaults(Map defaults, Map filter, defaultValue) {
     if (filter != null) {
       defaults ??= {};
       filter.forEach((key, value) {
         if (defaults[key] == null) {
           var keys = key.split('.');
           if (keys[0] != null && keys[2] == 'default') {
-            defaults[keys[0]] = getStringVar(value);
+            defaults[keys[0]] = getStringVar(value, defaultValue);
           }
         }
       });
@@ -171,7 +171,7 @@ class EngageFirestore {
      */
 
   Future<EngageDoc> getFirst({CollectionReference listRef, Map filter}) async {
-    var item = await getList(listRef: listRef, filter: filter, limit: 0);
+    var item = await getList(listRef: listRef, filter: filter, limit: 1);
     return item.isEmpty ? null : item[0];
   }
 
@@ -359,9 +359,9 @@ class EngageFirestore {
   }
 
   Future<EngageDoc> getOrCreate({Map defaultData, Map filter}) async {
-    defaultData = getFilterDefaults(defaultData, filter);
-    EngageDoc doc;
     String userId = await EngageAuth().currentUserId;
+    defaultData = getFilterDefaults(defaultData, filter, userId);
+    EngageDoc doc;
     EngageDoc found = await getFirst(filter: filter);
     if (found == null) {
       Map<String, dynamic> newMap = {...defaultData};
