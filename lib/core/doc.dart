@@ -58,21 +58,18 @@ class EngageDoc {
     EngageDoc found = await docs.getFirst(filter: filter);
     String userId = await EngageAuth().currentUserId;
     if (found == null) {
-      Map<String, dynamic> newMap = {};
-      doc = await docs.add(newMap, ignoreInit: true);
+      Map<String, dynamic> newMap = {...defaultData};
+      doc = await docs.add(newMap);
     } else {
       doc = found;
       data = found.$doc;
       subCollections = found.$collectionsList;
     }
     await doc.$$setupDoc(doc.$path, data, subCollections);
-    if (defaultData != null) {
+    if (defaultData != null && found != null) {
       if (doc.$setDefaults(defaultData, userId)) {
-        doc.$publish(doc.$doc);
+        await doc.$save();
       }
-    }
-    if (found == null && doc != null) {
-      await doc.$save();
     }
     return doc;
   }
@@ -93,6 +90,7 @@ class EngageDoc {
   }
 
   $$setupDoc([String path = '', data, subCollections]) async {
+    path ??= $path;
     List pathList = (path ?? '').split('/');
     bool isDocPath = pathList.length > 0 && pathList.length % 2 == 0;
     String docId;
@@ -340,7 +338,8 @@ class EngageDoc {
     return $save($doc);
   }
 
-  bool $setDefaults(Map data, [stringVarDefault]) {
+  bool $setDefaults(Map data, [stringVarDefault, doc]) {
+    doc ??= $doc;
     var changed = false;
     data.forEach((key, value) {
       if ($doc[key] == null && value != null) {

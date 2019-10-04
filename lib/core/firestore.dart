@@ -350,6 +350,7 @@ class EngageFirestore {
     newDoc = this.omitFire(newDoc);
     DocumentReference blank = docRef.document();
     newDoc['\$createdAt'] = DateTime.now().millisecondsSinceEpoch;
+    newDoc['\$updatedAt'] = DateTime.now().millisecondsSinceEpoch;
     newDoc['\$timezoneOffset'] = DateTime.now().timeZoneOffset.toString();
     newDoc['\$id'] = blank.documentID;
     await blank.setData(newDoc);
