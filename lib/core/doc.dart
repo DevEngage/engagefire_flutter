@@ -66,7 +66,7 @@ class EngageDoc {
       data = found.$doc;
       subCollections = found.$collectionsList;
     }
-    await doc.$$setupDoc(doc.$path, data, subCollections);
+    await doc.$$setupDoc('$path/${doc.$id}', data, subCollections);
     if (defaultData != null && found != null) {
       if (doc.$setDefaults(defaultData, userId)) {
         await doc.$save();
