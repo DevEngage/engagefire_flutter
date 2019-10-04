@@ -51,27 +51,10 @@ class EngageDoc {
     return doc;
   }
   
-  static Future<EngageDoc> getOrCreate({String path, Map data, List<String> subCollections, Map defaultData, Map filter}) async {
-    defaultData = $$mapDefaultsFromFilter(defaultData, filter);
-    EngageFirestore docs = await EngageFirestore.getInstance(path);
-    EngageDoc doc;
-    EngageDoc found = await docs.getFirst(filter: filter);
-    String userId = await EngageAuth().currentUserId;
-    if (found == null) {
-      defaultData.forEach((key, value) => defaultData[key] = docs.getStringVar(value));
-      Map<String, dynamic> newMap = {...defaultData};
-      doc = await docs.add(newMap);
-    } else {
-      doc = found;
-      data = found.$doc;
-      subCollections = found.$collectionsList;
-    }
-    await doc.$$setupDoc('$path/${doc.$id}', data, subCollections);
-    if (defaultData != null && found != null) {
-      if (doc.$setDefaults(defaultData, userId)) {
-        await doc.$save();
-      }
-    }
+  static Future<EngageDoc> getOrCreate({String path, List<String> subCollections, Map defaultData, Map filter}) async {
+    EngageFirestore collection = await EngageFirestore.getInstance(path);
+    collection.subCollections = subCollections ?? [];
+    EngageDoc doc = await collection.getOrCreate(defaultData: defaultData, filter: filter);
     return doc;
   }
 

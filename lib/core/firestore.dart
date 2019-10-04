@@ -144,6 +144,21 @@ class EngageFirestore {
     return customRef;
   }
 
+  getFilterDefaults(Map defaults, Map filter) {
+    if (filter != null) {
+      defaults ??= {};
+      filter.forEach((key, value) {
+        if (defaults[key] == null) {
+          var keys = key.split('.');
+          if (keys[0] != null && keys[2] == 'default') {
+            defaults[keys[0]] = getStringVar(value);
+          }
+        }
+      });
+    }
+    return defaults;
+  }
+
   /* 
   where('grower', isEqualTo: 1)
     String field, {
@@ -343,7 +358,24 @@ class EngageFirestore {
     }
   }
 
-  Future<dynamic> add(Map<String, dynamic> newDoc, {dynamic docRef, ignoreInit}) async {
+  Future<EngageDoc> getOrCreate({Map defaultData, Map filter}) async {
+    defaultData = getFilterDefaults(defaultData, filter);
+    EngageDoc doc;
+    String userId = await EngageAuth().currentUserId;
+    EngageDoc found = await getFirst(filter: filter);
+    if (found == null) {
+      Map<String, dynamic> newMap = {...defaultData};
+      doc = await add(newMap);
+    } else {
+      doc = found;
+      if (doc.$setDefaults(defaultData, userId)) {
+        await doc.$save();
+      }
+    }
+    return doc;
+  }
+
+  Future<dynamic> add(Map<String, dynamic> newDoc, {dynamic docRef, ignoreInit = false}) async {
     docRef ??= ref;
     if (newDoc != null && newDoc['\$id'] != null) {
       return this.update(newDoc, docRef: docRef);
