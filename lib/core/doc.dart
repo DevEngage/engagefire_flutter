@@ -81,11 +81,9 @@ class EngageDoc {
     if (isDocPath) {
       docId = pathList.removeLast();
       path = pathList.join('/');
-      this.$path = path;
       this.$engageFireStore = EngageFirestore.getInstance(path);
       data = await this.$engageFireStore.get(docId, pure: true);
     } else if (path != null) {
-      this.$path = path;
       this.$engageFireStore = EngageFirestore.getInstance(path);
     }
     if (data != null) {
