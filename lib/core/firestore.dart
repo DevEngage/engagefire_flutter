@@ -138,8 +138,6 @@ class EngageFirestore {
           customRef = customRef.where(field, isNull: value);
           break;
       }
-      if (key == 'isEqualTo') {
-      }
     });
     return customRef;
   }
@@ -181,10 +179,13 @@ class EngageFirestore {
       var userId = await EngageAuth().currentUserId;
       filter.forEach((key, value) => filter[key] = getStringVar(value, userId));
     }
-    listRef ??= filter != null ? buildQuery(filter) : ref;
-    if (limit != null) listRef.limit(limit);
+    dynamic query = listRef ?? ref;
+    if (filter != null) {
+      query = buildQuery(filter, query);
+    }
+    if (limit != null) query.limit(limit);
     QuerySnapshot collection;
-    collection = await listRef.getDocuments();
+    collection = await query.getDocuments();
     list = await this.addFireList(collection);
     $loading = false;
     return list;
