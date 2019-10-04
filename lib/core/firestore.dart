@@ -131,12 +131,6 @@ class EngageFirestore {
         case 'isNull':
           customRef = customRef.where(field, isNull: value);
           break;
-        case 'isInDay':
-          var day = new Duration(days: 1);
-          var prev = DateTime.fromMillisecondsSinceEpoch(value).subtract(day);
-          var next = DateTime.fromMillisecondsSinceEpoch(value).add(day);
-          customRef = customRef.where(field, isNull: value);
-          break;
       }
     });
     return customRef;
@@ -193,8 +187,8 @@ class EngageFirestore {
 
   Future<List> addFireList(QuerySnapshot collection) async {
     list = [];
-    if (collection != null && collection.documents.length != null) {
-      collection.documents.map((DocumentSnapshot doc) => doc.exists ? list.add(this.addFire(doc.data, doc.documentID)) : null);
+    if (collection != null && collection.documents != null) {
+      collection.documents.forEach((DocumentSnapshot doc) => doc.exists ? list.add(this.addFire(doc.data, doc.documentID)) : null);
     }
     return list;
   }
