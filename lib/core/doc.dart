@@ -58,6 +58,7 @@ class EngageDoc {
     EngageDoc found = await docs.getFirst(filter: filter);
     String userId = await EngageAuth().currentUserId;
     if (found == null) {
+      defaultData.forEach((key, value) => defaultData[key] = docs.getStringVar(value));
       Map<String, dynamic> newMap = {...defaultData};
       doc = await docs.add(newMap);
     } else {

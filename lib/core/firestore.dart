@@ -183,7 +183,7 @@ class EngageFirestore {
     return list;
   }
 
-  addFire(data, String id, {ignoreInit}) {
+  addFire(data, String id, {ignoreInit = false}) {
     if (data == null && id != null) {
       if (data is EngageDoc) {
         data.$id = id;
