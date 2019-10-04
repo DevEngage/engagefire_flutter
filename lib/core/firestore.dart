@@ -162,6 +162,10 @@ class EngageFirestore {
 
   Future<List> getList({CollectionReference listRef, Map filter, limit}) async {
     $loading = true;
+    if (filter != null) {
+      var userId = await EngageAuth().currentUserId;
+      filter.forEach((key, value) => filter[key] = getStringVar(value, userId));
+    }
     listRef ??= filter != null ? buildQuery(filter) : ref;
     if (limit != null) listRef.limit(limit);
     QuerySnapshot collection;
