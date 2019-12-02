@@ -7,7 +7,7 @@ import 'package:image_crop/image_crop.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 
-import 'package:network_to_file_image/network_to_file_image.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 /* 
   TODO: 
@@ -45,8 +45,8 @@ class EngageFiles {
     return Uuid().v1();
   }
 
-  image({url, file}) {
-    return Image(image: NetworkToFileImage(url: url, file: file, debug: true));
+  imageUrl({url}) {
+    return Image(image: CachedNetworkImageProvider(url));
   }
 
   Future<File> createFile(String name, dynamic content) async {
