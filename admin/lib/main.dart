@@ -1,3 +1,4 @@
+import 'package:admin/screens/collections_screen.dart';
 import 'package:flutter/material.dart';
 
 void main() => runApp(MyApp());
@@ -20,7 +21,14 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      // home: MyHomePage(title: 'Flutter Demo Home Page'),
+      initialRoute: '/',
+      routes: <String, WidgetBuilder> { //5 
+        '/': (context) => MyHomePage(title: 'Home Page'),
+        '/collections': (context) => CollectionsScreen(),
+        // '/first': (BuildContext context) => new FirstPage(), //6
+        // '/second' : (BuildContext context) => new SecondPage() //7
+      },
     );
   }
 }
@@ -73,7 +81,14 @@ class _MyHomePageState extends State<MyHomePage> {
         actions: <Widget>[
           FlatButton(
             textColor: Colors.white,
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push<dynamic>(
+                context,
+                MaterialPageRoute<dynamic>(
+                  builder: (BuildContext context) => CollectionsScreen(),
+                ),
+              );
+            },
             child: Text("Collections"),
             shape: CircleBorder(side: BorderSide(color: Colors.transparent)),
           ),
