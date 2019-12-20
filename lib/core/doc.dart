@@ -1,5 +1,3 @@
-
-
 import 'dart:io';
 import 'package:engagefire/core/firestore.dart';
 import 'package:engagefire/core/pubsub.dart';

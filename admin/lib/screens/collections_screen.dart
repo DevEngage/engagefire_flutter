@@ -24,20 +24,20 @@ class CollectionsScreenState extends State<CollectionsScreen> {
   @override
   Widget build(BuildContext context) {
     return Center(
-                child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Text('Error'),
-                Padding(
-                  padding: const EdgeInsets.only(top: 32.0),
-                  child: RaisedButton(
-                    color: Colors.blue,
-                    child: Text('reload'),
-                    onPressed: () => this._load(),
-                  ),
-                ),
-              ],
-            ));
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Text('Error'),
+          Padding(
+            padding: const EdgeInsets.only(top: 32.0),
+            child: RaisedButton(
+              color: Colors.blue,
+              child: Text('reload'),
+              onPressed: () => this._load(),
+            ),
+          ),
+        ],
+    ));
   }
 
   void _load([bool isError = false]) {

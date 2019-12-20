@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:engagefire/core/auth.dart';
 import 'package:engagefire/core/doc.dart';
 import 'package:engagefire/core/pubsub.dart';

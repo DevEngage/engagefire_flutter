@@ -21,13 +21,10 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      // home: MyHomePage(title: 'Flutter Demo Home Page'),
       initialRoute: '/',
-      routes: <String, WidgetBuilder> { //5 
+      routes: <String, WidgetBuilder> {
         '/': (context) => MyHomePage(title: 'Home Page'),
         '/collections': (context) => CollectionsScreen(),
-        // '/first': (BuildContext context) => new FirstPage(), //6
-        // '/second' : (BuildContext context) => new SecondPage() //7
       },
     );
   }
@@ -82,12 +79,7 @@ class _MyHomePageState extends State<MyHomePage> {
           FlatButton(
             textColor: Colors.white,
             onPressed: () {
-              Navigator.push<dynamic>(
-                context,
-                MaterialPageRoute<dynamic>(
-                  builder: (BuildContext context) => CollectionsScreen(),
-                ),
-              );
+              Navigator.pushNamed(context, '/collections');
             },
             child: Text("Collections"),
             shape: CircleBorder(side: BorderSide(color: Colors.transparent)),
