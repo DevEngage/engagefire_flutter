@@ -237,13 +237,13 @@ class EngageFirestore {
   }
 
   linkFireCollection(value) {
-    if (value != null && value['\&id'] != null) {
+    if (value != null && value['\$id'] != null) {
       return { 
-        '\$id': value['\&id'], 
-        '\$collection': value['\&collection'],
-        '\$thumb': value['\&thumb'],
-        '\$image': value['\&image'],
-        'name': value['\&name'] ?? '', 
+        '\$id': value['\$id'], 
+        '\$collection': value['\$collection'],
+        '\$thumb': value['\$thumb'],
+        '\$image': value['\$image'],
+        'name': value['\$name'] ?? '', 
       };
     }
     return value;
