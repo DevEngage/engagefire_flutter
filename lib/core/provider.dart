@@ -1,4 +1,5 @@
 
+import 'package:engagefire/core/firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
  
@@ -7,17 +8,16 @@ import 'package:provider/provider.dart';
 // [ ] queryList method for grouped lists
 // [ ] Test: queries
 
-class EngageProvider with ChangeNotifier {
+class EngageProvider extends EngageFirestore with ChangeNotifier {
 
-  final List<String> collections;
-  final List<String> states;
+  // final List<String> collections;
+  // final List<String> states;
+  final String path;
   List _list;
 
-  EngageProvider(this.collections, this.states) {
-    // collections.
-  }
+  EngageProvider(this.path):  super(path);
 
-  getList() => _list;
+  // getList() => _list;
 
   $() {
 
