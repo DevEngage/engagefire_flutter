@@ -13,9 +13,10 @@ class EngageProvider extends EngageFirestore with ChangeNotifier {
   // final List<String> collections;
   // final List<String> states;
   final String path;
+  Map defaultValue = {};
   List _list;
 
-  EngageProvider(this.path):  super(path);
+  EngageProvider(this.path, [this.defaultValue]):  super(path);
 
   // getList() => _list;
 
