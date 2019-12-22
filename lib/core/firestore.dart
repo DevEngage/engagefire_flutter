@@ -508,7 +508,6 @@ class EngageFirestore {
       .listen((snapshot) => cb is List ? cb = addFireList(snapshot) : cb(addFireList(snapshot)));
   }
 
-
   Stream listen(cb, [CollectionReference listRef]) {
     listRef ??= ref;
     var transformer = StreamTransformer.fromHandlers(handleData: (value, sink) {
@@ -516,7 +515,6 @@ class EngageFirestore {
     });
     return listRef.snapshots().transform(transformer);
   }
-
 
   /*
    * UTILITIES
