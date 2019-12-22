@@ -85,6 +85,7 @@ class EngageFire {
     }
     EngageFire._auth = await EngageAuth.init();
     EngagePubsub.init(app: _app, storage: _storage, ads: _ads, auth: _auth);
+    _auth.streamUser.listen((user) => EngagePubsub.getInstance().publish(user, '_user'));
     return EngageFire._app;
   }
 

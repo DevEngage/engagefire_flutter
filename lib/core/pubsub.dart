@@ -75,7 +75,7 @@ class EngagePubsub {
     return this.data[what] = {};
   }
 
-  static getInstance() {
+  static EngagePubsub getInstance() {
     return EngagePubsub.instance ??= EngagePubsub();
   }
 }

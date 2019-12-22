@@ -45,6 +45,9 @@ class EngageFirestore {
   }
 
   Future<void> init() async {
+    _updateUser(await EngageAuth().currentUser);
+    path = this.getStringVar(path);
+
     EngageFirestore.STATE ??= {};
     if (EngageFirestore.STATE[path] == null) {
       EngageFirestore.STATE[path] = {};
@@ -53,14 +56,18 @@ class EngageFirestore {
     if (path is String) {
       ref = _db.collection(path);
     }
-    $user = await EngageAuth().currentUser;
-    publish($user, 'user');
-    if ($user != null) {
-      userId = $user.uid;
-      if (debug) print('userId: $userId');
-    }
     // await getModelFromDb();
     $loading = false;
+    _ps.subscribe('_user', _updateUser);
+  }
+
+  _updateUser(user) {
+    $user = user;
+    if ($user != null) {
+      userId = $user.uid;
+      path = this.getStringVar(path);
+      if (debug) print('userId: $userId');
+    }
   }
 
   static getInstance(
@@ -135,14 +142,14 @@ class EngageFirestore {
     return customRef;
   }
 
-  getFilterDefaults(Map defaults, Map filter, defaultValue) {
+  getFilterDefaults(Map defaults, Map filter, {userId, dateDMY}) {
     if (filter != null) {
       defaults ??= {};
       filter.forEach((key, value) {
         if (defaults[key] == null) {
           var keys = key.split('.');
           if (keys[0] != null && keys[2] == 'default') {
-            defaults[keys[0]] = getStringVar(value, defaultValue);
+            defaults[keys[0]] = getStringVar(value, userId: userId, dateDMY: dateDMY);
           }
         }
       });
@@ -170,7 +177,7 @@ class EngageFirestore {
     $loading = true;
     if (filter != null) {
       var userId = await EngageAuth().currentUserId;
-      filter.forEach((key, value) => filter[key] = getStringVar(value, userId));
+      filter.forEach((key, value) => filter[key] = getStringVar(value, userId: userId));
     }
     dynamic query = listRef ?? ref;
     if (filter != null) {
@@ -317,9 +324,16 @@ class EngageFirestore {
     return doc;
   }
 
-  getStringVar(dynamic what, [replaceWith]) {
-    if (what is String && (what.contains('{userId}') || what.contains('{\$userId}'))) {
-      return replaceWith ?? userId;
+  getStringVar(dynamic what, {userId, dateDMY}) {
+    if (what is String) {
+      if ((what.contains('{userId}') || what.contains('{\$userId}'))) {
+        what = what.replaceAll(new RegExp(r'{userId}'), userId ?? this.userId);
+      }
+      if (what.contains('{date.d-m-y}')) {
+        final date = DateTime.now();
+        String dmy = "${date.day}-${date.month}-${date.year}";
+        what = what.replaceAll(new RegExp(r'{date.d-m-y}'), dateDMY ?? dmy);
+      }
     }
     return what;
   }
@@ -354,7 +368,7 @@ class EngageFirestore {
 
   Future<EngageDoc> getOrCreate({Map defaultData, Map filter}) async {
     String userId = await EngageAuth().currentUserId;
-    defaultData = getFilterDefaults(defaultData, filter, userId);
+    defaultData = getFilterDefaults(defaultData, filter, userId: userId);
     EngageDoc doc;
     EngageDoc found = await getFirst(filter: filter);
     if (found == null) {
