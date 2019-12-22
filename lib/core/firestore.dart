@@ -376,7 +376,7 @@ class EngageFirestore {
       doc = await add(newMap);
     } else {
       doc = found;
-      if (doc.$setDefaults(defaultData, userId)) {
+      if (doc.$setDefaults(defaultData, userId: userId)) {
         await doc.$save();
       }
     }

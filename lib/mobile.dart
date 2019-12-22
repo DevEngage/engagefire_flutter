@@ -10,4 +10,5 @@ export 'core/doc.dart';
 export 'core/engagefire.dart';
 export 'core/files.dart';
 export 'core/firestore.dart';
+export 'core/provider.dart';
 export 'core/pubsub.dart';

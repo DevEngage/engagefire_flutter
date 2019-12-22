@@ -39,7 +39,7 @@ class EngageDoc {
     await doc.$$setupDoc(path, data, subCollections);
     String userId = await EngageAuth().currentUserId;
     if (defaultData != null) {
-      if (doc.$setDefaults(defaultData, userId)) {
+      if (doc.$setDefaults(defaultData, userId: userId)) {
         doc.$publish(doc.$doc);
       }
     }
@@ -318,12 +318,12 @@ class EngageDoc {
     return $save($doc);
   }
 
-  bool $setDefaults(Map data, [stringVarDefault, doc]) {
+  bool $setDefaults(Map data, {userId, dateDMY, doc}) {
     doc ??= $doc;
     var changed = false;
     data.forEach((key, value) {
       if ($doc[key] == null && value != null) {
-        $doc[key] = this.$engageFireStore.getStringVar(value, stringVarDefault);
+        $doc[key] = this.$engageFireStore.getStringVar(value, userId: userId, dateDMY: dateDMY);
         changed = true;
       }
     });

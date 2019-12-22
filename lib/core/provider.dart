@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:engagefire/core/firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import 'doc.dart';
  
 // TODO:
@@ -61,6 +60,16 @@ class EngageProvider extends EngageFirestore with ChangeNotifier {
   @override
   Future<EngageDoc> getOrCreate({Map defaultData, Map filter}) async {
     return super.getOrCreate(defaultData: defaultData ?? this.defaultData, filter: filter);
+  }
+
+}
+
+class EngageProviderDoc extends EngageDoc with ChangeNotifier {
+
+  @override
+  $publish([data]) {
+    super.$publish(data);
+    notifyListeners();
   }
 
 }
