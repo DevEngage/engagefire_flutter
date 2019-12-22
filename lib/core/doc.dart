@@ -5,6 +5,10 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'auth.dart';
 import 'engagefire.dart';
 
+/*
+ * TODO:
+ * [ ] Increment multiple values by given Map of values
+ * */
 class EngageDoc {
   static Map<String, EngageDoc> instances = {};
   final EngagePubsub _ps = engagePubsub;

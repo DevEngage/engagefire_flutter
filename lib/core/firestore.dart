@@ -18,6 +18,7 @@ import 'omittedList.dart';
  * [ ] Fully test everything!
  * [ ] Add Model system
  * [ ] Integrate User name ($getUserName)
+ * [ ] Increment multiple values by given Map of values
  * */
 class EngageFirestore {
   static var STATE;
