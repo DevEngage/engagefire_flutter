@@ -326,9 +326,13 @@ class EngageFirestore {
   }
 
   getStringVar(dynamic what, {userId, dateDMY}) {
+    return EngageFirestore.replaceTemplateString(what, userId: userId ?? this.userId, dateDMY: dateDMY);
+  }
+
+  static replaceTemplateString(dynamic what, {userId, dateDMY}) {
     if (what is String) {
       if ((what.contains('{userId}') || what.contains('{\$userId}'))) {
-        what = what.replaceAll(new RegExp(r'{userId}'), userId ?? this.userId);
+        what = what.replaceAll(new RegExp(r'{userId}'), userId);
       }
       if (what.contains('{date.d-m-y}')) {
         final date = DateTime.now();

@@ -54,6 +54,7 @@ class EngageDoc {
   }
   
   static Future<EngageDoc> getOrCreate({String path, List<String> subCollections, Map defaultData, Map filter}) async {
+    path = EngageFirestore.replaceTemplateString(path);
     EngageFirestore collection = await EngageFirestore.getInstance(path);
     collection.subCollections = subCollections ?? [];
     EngageDoc doc = await collection.getOrCreate(defaultData: defaultData, filter: filter);
@@ -77,6 +78,7 @@ class EngageDoc {
 
   $$setupDoc([String path = '', data, subCollections]) async {
     path ??= $path;
+    path = EngageFirestore.replaceTemplateString(path);
     List pathList = (path ?? '').split('/');
     bool isDocPath = pathList.length > 0 && pathList.length % 2 == 0;
     String docId;
@@ -150,11 +152,11 @@ class EngageDoc {
 
   Future<dynamic> $(String key, {dynamic value, dynamic defaultValue, int increment, int decrement, Function done, save = true, recordEvent = false}) async {
     if (increment != null && increment > 0) {
-      value ??= this.$doc[key] ?? 0;
+      value ??= this.$doc[key] ?? increment is double ? 0.0 : 0;
       value += increment;
     }
     if (decrement != null && decrement > 0) {
-      value ??= this.$doc[key] ?? 0;
+      value ??= this.$doc[key] ?? increment is double ? 0.0 : 0;
       value -= decrement;
     }
     if (defaultValue != null) {
