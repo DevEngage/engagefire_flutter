@@ -54,7 +54,8 @@ class EngageDoc {
   }
   
   static Future<EngageDoc> getOrCreate({String path, List<String> subCollections, Map defaultData, Map filter}) async {
-    path = EngageFirestore.replaceTemplateString(path);
+    String userId = await EngageAuth().currentUserId;
+    path = EngageFirestore.replaceTemplateString(path ?? '', userId: userId);
     EngageFirestore collection = await EngageFirestore.getInstance(path);
     collection.subCollections = subCollections ?? [];
     EngageDoc doc = await collection.getOrCreate(defaultData: defaultData, filter: filter);
@@ -78,7 +79,8 @@ class EngageDoc {
 
   $$setupDoc([String path = '', data, subCollections]) async {
     path ??= $path;
-    path = EngageFirestore.replaceTemplateString(path);
+    String userId = await EngageAuth().currentUserId;
+    path = EngageFirestore.replaceTemplateString(path ?? '', userId: userId);
     List pathList = (path ?? '').split('/');
     bool isDocPath = pathList.length > 0 && pathList.length % 2 == 0;
     String docId;

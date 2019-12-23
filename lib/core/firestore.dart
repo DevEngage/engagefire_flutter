@@ -331,10 +331,10 @@ class EngageFirestore {
 
   static replaceTemplateString(dynamic what, {userId, dateDMY}) {
     if (what is String && what != null) {
-      if ((what.contains('{userId}') || what.contains('{\$userId}'))) {
+      if (userId != null && (what.contains('{userId}') || what.contains('{\$userId}'))) {
         what = what.replaceAll(new RegExp(r'{userId}'), userId);
       }
-      if (what != null && what.contains('{date.d-m-y}')) {
+      if (dateDMY != null && what.contains('{date.d-m-y}')) {
         final date = DateTime.now();
         String dmy = "${date.day}-${date.month}-${date.year}";
         what = what.replaceAll(new RegExp(r'{date.d-m-y}'), dateDMY ?? dmy);
