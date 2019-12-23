@@ -148,7 +148,7 @@ class EngageDoc {
     return this.$doc['\$owner'] == (await EngageAuth().currentUserId);
   }
 
-  Future<dynamic> $(String key, {dynamic value, dynamic defaultValue, int increment, int decrement, Function done, save = true}) async {
+  Future<dynamic> $(String key, {dynamic value, dynamic defaultValue, int increment, int decrement, Function done, save = true, recordEvent = false}) async {
     if (increment != null && increment > 0) {
       value ??= this.$doc[key] ?? 0;
       value += increment;
@@ -167,7 +167,24 @@ class EngageDoc {
     this.$doc[key] = value;
     if(save) await this.$save();
     if (done != null) done(value, key);
+    if (recordEvent) await $$recordEvent({key: this.$doc[key]});
     return this.$doc[key];
+  }
+
+  Future<dynamic> $map(Map doc, {bool increment, bool decrement, Function done, save = true, recordEvent = false}) async {
+    doc.forEach((key, value) {
+      if (increment) {
+        $(key, increment: value, save: false, recordEvent: false);
+      } else if (decrement) {
+        $(key, decrement: value, save: false, recordEvent: false );
+      } else {
+        $(key, value: value, save: false, recordEvent: false );
+      }
+    });
+    if(save) await this.$save();
+    if (done != null) done(doc);
+    if (recordEvent) await $$recordEvent(doc);
+    return this.$doc;
   }
 
   $addFiles({File file, String path, String id}) async {
@@ -377,5 +394,13 @@ class EngageDoc {
       });
     }
     return defaults;
+  }
+
+  Future $$recordEvent(Map doc) async {
+    dynamic result;
+    if (doc != null) {
+      result = await EngageFirestore.getInstance("$this['\$path']/events").save(doc);
+    }
+    return result;
   }
 }
