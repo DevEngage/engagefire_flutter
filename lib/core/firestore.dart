@@ -346,9 +346,7 @@ class EngageFirestore {
   Future<dynamic> get(String docId, {CollectionReference listRef, blank = true, pure}) async {
     $loading = true;
     listRef ??= ref;
-    if (docId.contains('{userId}') || docId.contains('{\$userId}')) {
-      docId = await EngageAuth().currentUserId;
-    }
+    docId = getStringVar(docId);
     if (pure) {
       dynamic doc = await listRef.document(docId).get();
       return doc.exists ? doc.data : {};
