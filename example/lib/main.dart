@@ -4,6 +4,8 @@ import 'package:engagefire/mobile/screens/login.dart';
 import 'package:example/utility/theme.dart';
 import 'package:flutter/material.dart';
 
+import 'firestore_sandbox.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EngageFire.init(
@@ -39,7 +41,8 @@ class MyApp extends StatelessWidget {
           google: true,
           twitter: false,
         ),
-        '/home': (context) => FormBuilder(),
+        '/home': (context) => FirestoreSandbox(),
+        // '/home': (context) => FormBuilder(),
         // '/addFood': (context) => AddFoodPage(),
       },
       title: 'EngageFire Example',

@@ -8,6 +8,9 @@ import 'engagefire.dart';
 /*
  * TODO:
  * [ ] Increment multiple values by given Map of values
+ * [ ] Toggle subcollection
+ * [ ] add and remove subCollection
+ * [ ] get subCollectionList
  * */
 class EngageDoc {
   static Map<String, EngageDoc> instances = {};
@@ -67,13 +70,15 @@ class EngageDoc {
     this.$ref = this.$engageFireStore.ref;
     String tmpPath;
     tmpPath = this.$engageFireStore.path;
-    this.$path = "$tmpPath/$this['\$id']";
+    // print($id);
+    this.$path = "$tmpPath/${$id}";
     this.$collection = this.$ref.path;
     this.$doc['\$collection'] = this.$collection;
     this.$doc['\$id'] = this.$id; 
     this.$docRef = this.$ref.document(this.$id);
 
-    (this.$collectionsList ?? []).forEach($buildCollections);
+    (this.$collectionsList ?? []).forEach((element) => $buildCollections(element, this.$id));
+    print(this.$id);
     this.$loading = false;
   }
 
@@ -103,10 +108,21 @@ class EngageDoc {
     await this.$$init();
   }
 
-  $buildCollections(element) {
-    var sub = element.split('.')[0];
-    var preFetch = element.split('.')[1];
-    this.$collections['$sub\_'] = EngageFirestore.getInstance("$this['\$path']/$sub");
+  $buildCollections(element, id) {
+    var commands = element.split('.');
+    var sub = commands[0];
+    var preFetch;
+    if (commands.length > 1) {
+      preFetch = commands[1];
+    }
+    // print($path);
+    // print(sub);
+    // print(this.$engageFireStore.path);
+    print(this.$engageFireStore.path);
+    print(id);
+    // print($doc);
+    print("${$path}$sub");
+    this.$collections['$sub\_'] = EngageFirestore.getInstance("${$path}$sub");
     this.$omitList.add('$sub\_');
     if (preFetch == 'list') this.$collections['$sub\_'].getList();
   }
@@ -269,7 +285,7 @@ class EngageDoc {
   }
 
   Future $getSubCollection(String collection, [db]) async {
-    return EngageFirestore.getInstance("$this['\$path']/$collection");
+    return EngageFirestore.getInstance("${this.$path}/$collection");
   }
 
   // Future $watch(cb) async {
@@ -403,7 +419,7 @@ class EngageDoc {
   Future $$recordEvent(Map doc) async {
     dynamic result;
     if (doc != null) {
-      result = await EngageFirestore.getInstance("$this['\$path']/events").save(doc);
+      result = await EngageFirestore.getInstance("${this.$path}/events").save(doc);
     }
     return result;
   }

@@ -45,8 +45,8 @@ class EngageFirestore {
     init();
   }
 
-  Future<void> init() async {
-    _updateUser(await EngageAuth().currentUser);
+  Future<void> init() {
+    _updateUser(EngageAuth.user);
     path = this.getStringVar(path);
 
     EngageFirestore.STATE ??= {};
@@ -149,7 +149,7 @@ class EngageFirestore {
       filter.forEach((key, value) {
         if (defaults[key] == null) {
           var keys = key.split('.');
-          if (keys[0] != null && keys[2] == 'default') {
+          if (keys[0] != null && keys.length > 2 && keys[2] == 'default') {
             defaults[keys[0]] = getStringVar(value, userId: userId, dateDMY: dateDMY);
           }
         }
@@ -459,7 +459,7 @@ class EngageFirestore {
     }
   }
 
-  Future<dynamic> save(newDoc, {CollectionReference listRef}) async {
+  Future<dynamic> save(dynamic newDoc, {CollectionReference listRef}) async {
     newDoc = omitFire(newDoc);
     if (newDoc is EngageDoc) {
       newDoc.$loading = true;
