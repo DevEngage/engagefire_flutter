@@ -18,11 +18,11 @@ class _FirestoreSandboxState extends State<FirestoreSandbox> {
   EngageDoc user;
   _FirestoreSandboxState() {
     users = EngageFirestore.getInstance('users');
-    user = EngageDoc(path: 'testing/{userId}', subCollections: ['favorites']);
+    user = EngageDoc(path: 'testing/{userId}');
     Future.delayed(Duration(seconds: 4), () async {
-      // print(user.$collections);
-      EngageFirestore favorites = user.$collections['favorites_'];
-      await favorites.save(<String, dynamic>{'name': 'test', 'age': 12});
+      // EngageFirestore favorites = user.$collections['favorites_'];
+      // print(favorites);
+      // await favorites.save(<String, dynamic>{'name': 'test', 'age': 12});
     });
   }
 

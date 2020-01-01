@@ -66,8 +66,8 @@ class EngageProvider extends EngageFirestore with ChangeNotifier {
 
 class EngageProviderDoc extends EngageDoc with ChangeNotifier {
 
-  EngageProviderDoc({String path, Map data, List<String> subCollections, ignoreInit = false}): 
-    super(path: path, data: data, subCollections: subCollections, ignoreInit: ignoreInit);
+  EngageProviderDoc({String path, Map data, bool ignoreInit = false}): 
+    super(path: path, data: data, ignoreInit: ignoreInit);
 
   @override
   $publish([data]) {

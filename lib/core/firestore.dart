@@ -210,7 +210,7 @@ class EngageFirestore {
       }
     }
     if (EngageDoc != null && data is Map) {
-      return EngageDoc(data: data, path: path, subCollections: subCollections, ignoreInit: ignoreInit);
+      return EngageDoc(data: data, path: path, ignoreInit: ignoreInit);
     }
     return data;
   }

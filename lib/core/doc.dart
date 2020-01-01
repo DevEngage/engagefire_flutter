@@ -10,10 +10,13 @@ import 'engagefire.dart';
  * [ ] Increment multiple values by given Map of values
  * [ ] Toggle subcollection
  * [ ] add and remove subCollection
+ * [ ] add event to subCollection
  * [ ] get subCollectionList
+ * [ ] remove sub Collections from this and make it so we set it up in the beginning or model
  * */
 class EngageDoc {
   static Map<String, EngageDoc> instances = {};
+  // static Map<String, EngageDoc> subCollections = {};
   final EngagePubsub _ps = engagePubsub;
   dynamic $ref;
   dynamic $docRef;
@@ -36,14 +39,16 @@ class EngageDoc {
     '\$id': '',
     '\$collection': '',
   };
+  String _path;
 
-  EngageDoc({String path, Map data, List<String> subCollections, ignoreInit = false}) {
-    if (!ignoreInit && path != null) this.$$setupDoc(path, data, subCollections);
+  EngageDoc({path, Map data, ignoreInit = false}) {
+    this._path = path;
+    if (!ignoreInit && path != null) this.$$setupDoc(path, data);
   }
-  
-  static Future<EngageDoc> get({String path, Map data, List<String> subCollections, Map defaultData, bool saveDefaults = false}) async {
+
+  static Future<EngageDoc> get({String path, Map data, Map defaultData, bool saveDefaults = false}) async {
     EngageDoc doc = EngageDoc(ignoreInit: true);
-    await doc.$$setupDoc(path, data, subCollections);
+    await doc.$$setupDoc(path, data);
     String userId = await EngageAuth().currentUserId;
     if (defaultData != null) {
       if (doc.$setDefaults(defaultData, userId: userId)) {
@@ -56,13 +61,40 @@ class EngageDoc {
     return doc;
   }
   
-  static Future<EngageDoc> getOrCreate({String path, List<String> subCollections, Map defaultData, Map filter}) async {
+  static Future<EngageDoc> getOrCreate({String path, Map defaultData, Map filter}) async {
     String userId = await EngageAuth().currentUserId;
     path = EngageFirestore.replaceTemplateString(path ?? '', userId: userId);
     EngageFirestore collection = await EngageFirestore.getInstance(path);
-    collection.subCollections = subCollections ?? [];
     EngageDoc doc = await collection.getOrCreate(defaultData: defaultData, filter: filter);
     return doc;
+  }
+
+  validateInit(path) {
+    path ??=  _path;
+    if (path != null) {
+      List pathList = (path ?? '').split('/');
+      if (pathList.isEmpty && pathList.length % 2 == 0)  {
+        throw 'Path is Collection and not Doc';
+      }
+    }
+    return true;
+  }
+
+  bool $$isPathCorrect([path]) {
+    List pathList = (path ?? _path ?? '').split('/');
+    return pathList.length > 0 && pathList.length % 2 == 0;
+  }
+
+  String $$getCollection([path]) {
+    List pathList = (path ?? _path ?? '').split('/');
+    final collectionPath = pathList.join('/');
+    return collectionPath;
+  }
+
+  String $$parseId([path]) {
+    List pathList = (path ?? _path ?? '').split('/');
+    final docId = pathList.removeLast();
+    return docId;
   }
 
   Future<void> $$init() async {
@@ -70,40 +102,42 @@ class EngageDoc {
     this.$ref = this.$engageFireStore.ref;
     String tmpPath;
     tmpPath = this.$engageFireStore.path;
-    // print($id);
     this.$path = "$tmpPath/${$id}";
     this.$collection = this.$ref.path;
     this.$doc['\$collection'] = this.$collection;
-    this.$doc['\$id'] = this.$id; 
+    this.$doc['\$id'] = this.$id;
     this.$docRef = this.$ref.document(this.$id);
-
-    (this.$collectionsList ?? []).forEach((element) => $buildCollections(element, this.$id));
-    print(this.$id);
     this.$loading = false;
   }
 
-  $$setupDoc([String path = '', data, subCollections]) async {
+  $$setupParentCollection([path]) {
     path ??= $path;
-    String userId = await EngageAuth().currentUserId;
-    path = EngageFirestore.replaceTemplateString(path ?? '', userId: userId);
-    List pathList = (path ?? '').split('/');
-    bool isDocPath = pathList.length > 0 && pathList.length % 2 == 0;
-    String docId;
+    final isDocPath = $$isPathCorrect(path);
     if (isDocPath) {
-      docId = pathList.removeLast();
-      path = pathList.join('/');
+      path = $$getCollection(path);
       this.$engageFireStore = EngageFirestore.getInstance(path);
-      data = await this.$engageFireStore.get(docId, pure: true);
     } else if (path != null) {
       this.$engageFireStore = EngageFirestore.getInstance(path);
+    }
+  }
+
+  $$setupDoc([String path = '', data]) async {
+    if (validateInit(path)) {
+      return false;
+    }
+    path ??= $path;
+    final userId = await EngageAuth().currentUserId;
+    final isDocPath = $$isPathCorrect(path);
+    path = EngageFirestore.replaceTemplateString(path ?? '', userId: userId);
+    $$setupParentCollection(path);
+    var docId = $$parseId(path);
+    if (isDocPath) {
+      data = await this.$engageFireStore.get(docId, pure: true);
     }
     if (data != null) {
       this.$doc = {...$doc, ...data};
     } else if (docId != null) {
       this.$doc = {...$doc, '\$updatedAt': DateTime.now().millisecondsSinceEpoch, '\$id': this.$engageFireStore.getStringVar(docId)};
-    }
-    if (subCollections != null) {
-      this.$collectionsList = subCollections;
     }
     await this.$$init();
   }
@@ -115,13 +149,8 @@ class EngageDoc {
     if (commands.length > 1) {
       preFetch = commands[1];
     }
-    // print($path);
-    // print(sub);
-    // print(this.$engageFireStore.path);
-    print(this.$engageFireStore.path);
-    print(id);
-    // print($doc);
-    print("${$path}$sub");
+    print($$parseId());
+    // print("${$path}$sub");
     this.$collections['$sub\_'] = EngageFirestore.getInstance("${$path}$sub");
     this.$omitList.add('$sub\_');
     if (preFetch == 'list') this.$collections['$sub\_'].getList();
@@ -262,7 +291,7 @@ class EngageDoc {
   }
 
   $downloadFile(String fileId) async {
-    Map fileDoc = (await this.$getSubCollection('\$files')).get(fileId);
+    Map fileDoc = await (this.$getSubCollection('\$files')).get(fileId);
     return await EngageFire.storage.downloadFile(fileDoc['url']);
   }
 
@@ -284,8 +313,8 @@ class EngageDoc {
     return this.$doc;
   }
 
-  Future $getSubCollection(String collection, [db]) async {
-    return EngageFirestore.getInstance("${this.$path}/$collection");
+  EngageFirestore $getSubCollection(String collection, [options]) {
+    return EngageFirestore.getInstance("${this.$path}/$collection", options: options);
   }
 
   // Future $watch(cb) async {
@@ -361,11 +390,15 @@ class EngageDoc {
 
   bool $setDefaults(Map data, {userId, dateDMY, doc}) {
     doc ??= $doc;
+    $engageFireStore ??= $$setupParentCollection();
     var changed = false;
     data.forEach((key, value) {
-      if ($doc[key] == null && value != null) {
+      if ($doc[key] == null && value != null && this.$engageFireStore != null) {
         $doc[key] = this.$engageFireStore.getStringVar(value, userId: userId, dateDMY: dateDMY);
         changed = true;
+      }
+      if (this.$engageFireStore == null) {
+        print('$_path missing collection (this.\$engageFireStore)');
       }
     });
     return changed;
@@ -423,4 +456,58 @@ class EngageDoc {
     }
     return result;
   }
+
+  Future $toggleSub(String collection, data) async {
+    EngageFirestore ref = $getSubCollection(collection);
+    String id = data is String ? data : data['\$id'];
+    EngageDoc doc = await ref.get(id);
+    if (doc == null && data is String) {
+      await ref.save({
+        $id: id,
+      });
+      return true;
+    } else if (doc == null) {
+      await ref.save(data);
+      return true;
+    }
+    await ref.remove(id);
+    return false;
+  }
+
+  Future $sub(String collection, data) async {
+    EngageFirestore ref = $getSubCollection(collection);
+    if (data is String) {
+      return ref.get(data);
+    } else if (data != null) {
+      return ref.save(data);
+    }
+    return null;
+  }
+
+  Future $subRemove(String collection, data) async {
+    EngageFirestore ref = $getSubCollection(collection);
+    if (data is String) {
+      return ref.remove(data);
+    } else if (data != null && data['\$id'] != null) {
+      return await ref.remove(data['\$id']);
+    }
+    return null;
+  }
+
+  Future<EngageFirestore> $getSub(String collection, [options]) async {
+    return $getSubCollection(collection, options);
+  }
+
+  // static getInstance(
+  //   String path,
+  //   {options, }
+  // ) {
+  //   if (EngageDoc.instances[path] == null)  {
+  //     EngageDoc.instances[path] = EngageDoc(path: path);
+  //   }
+  //   // if (options != null) {
+  //   //   return EngageDoc.instances[path].options(options);
+  //   // }
+  //   return EngageDoc.instances[path];
+  // }
 }
