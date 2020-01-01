@@ -43,7 +43,7 @@ class EngageDoc {
 
   EngageDoc({path, Map data, ignoreInit = false}) {
     this._path = path;
-    if (!ignoreInit && path != null) this.$$setupDoc(path, data);
+    if (!ignoreInit && path != null) $$setupDoc(path, data);
   }
 
   static Future<EngageDoc> get({String path, Map data, Map defaultData, bool saveDefaults = false}) async {
@@ -69,24 +69,53 @@ class EngageDoc {
     return doc;
   }
 
-  validateInit(path) {
-    path ??=  _path;
-    if (path != null) {
-      List pathList = (path ?? '').split('/');
-      if (pathList.isEmpty && pathList.length % 2 == 0)  {
-        throw 'Path is Collection and not Doc';
+  $setId([id]) {
+    $id = id ?? $doc['\$id'] ?? $doc['id'] ?? $id;
+    $doc['\$id'] = $id;
+    if ($engageFireStore != null && $id != null) {
+      $path = "${$engageFireStore.path}/${$id}";
+    }
+  }
+
+  $setCollection([path]) {
+    path ??= $path;
+    final isDocPath = $$isPathCorrect(path);
+    if (isDocPath) {
+      path = $$getCollection(path);
+      $engageFireStore = EngageFirestore.getInstance(path);
+    } else if (path != null) {
+      $engageFireStore = EngageFirestore.getInstance(path);
+    }
+    if ($engageFireStore != null) {
+      $ref = $engageFireStore.ref;
+      $collection = $ref.path;
+      $docRef = $ref.document($id);  
+      $doc['\$collection'] = $collection;
+      if ($id != null) {
+        $path = "${$engageFireStore.path}/${$id}";
       }
+    }
+  }
+
+  $$validateInit(path) {
+    path ??=  _path;
+    if (path != null && !$$isPathCorrect(path)) {
+      throw 'Path is Collection and not Doc';
+    } else if (path == null) {
+      throw 'Path is Empty';
     }
     return true;
   }
 
   bool $$isPathCorrect([path]) {
     List pathList = (path ?? _path ?? '').split('/');
-    return pathList.length > 0 && pathList.length % 2 == 0;
+    print(pathList);
+    return pathList.isNotEmpty && pathList.length % 2 == 0;
   }
 
   String $$getCollection([path]) {
     List pathList = (path ?? _path ?? '').split('/');
+    pathList.removeLast();
     final collectionPath = pathList.join('/');
     return collectionPath;
   }
@@ -97,127 +126,105 @@ class EngageDoc {
     return docId;
   }
 
-  Future<void> $$init() async {
-    this.$id = this.$doc['\$id'] ?? this.$doc['id'] ?? this.$id;
-    this.$ref = this.$engageFireStore.ref;
-    String tmpPath;
-    tmpPath = this.$engageFireStore.path;
-    this.$path = "$tmpPath/${$id}";
-    this.$collection = this.$ref.path;
-    this.$doc['\$collection'] = this.$collection;
-    this.$doc['\$id'] = this.$id;
-    this.$docRef = this.$ref.document(this.$id);
-    this.$loading = false;
-  }
-
-  $$setupParentCollection([path]) {
-    path ??= $path;
-    final isDocPath = $$isPathCorrect(path);
-    if (isDocPath) {
-      path = $$getCollection(path);
-      this.$engageFireStore = EngageFirestore.getInstance(path);
-    } else if (path != null) {
-      this.$engageFireStore = EngageFirestore.getInstance(path);
-    }
-  }
-
   $$setupDoc([String path = '', data]) async {
-    if (validateInit(path)) {
-      return false;
-    }
     path ??= $path;
+    $$validateInit(path);
+    $loading = true;
     final userId = await EngageAuth().currentUserId;
     final isDocPath = $$isPathCorrect(path);
     path = EngageFirestore.replaceTemplateString(path ?? '', userId: userId);
-    $$setupParentCollection(path);
     var docId = $$parseId(path);
-    if (isDocPath) {
-      data = await this.$engageFireStore.get(docId, pure: true);
+    $setId(docId);
+    $setCollection(path);
+    if (isDocPath && data == null) {
+      data = await $engageFireStore.get($id, pure: true);
     }
     if (data != null) {
-      this.$doc = {...$doc, ...data};
-    } else if (docId != null) {
-      this.$doc = {...$doc, '\$updatedAt': DateTime.now().millisecondsSinceEpoch, '\$id': this.$engageFireStore.getStringVar(docId)};
+      $doc = {...$doc, ...data, '\$collection': $collection, '\$id': $id};
+    } else if ($id != null) {
+      $doc = {...$doc, '\$updatedAt': DateTime.now().millisecondsSinceEpoch, '\$id': $id};
     }
-    await this.$$init();
+    $loading = false;
   }
 
-  $buildCollections(element, id) {
-    var commands = element.split('.');
-    var sub = commands[0];
-    var preFetch;
-    if (commands.length > 1) {
-      preFetch = commands[1];
-    }
-    print($$parseId());
-    // print("${$path}$sub");
-    this.$collections['$sub\_'] = EngageFirestore.getInstance("${$path}$sub");
-    this.$omitList.add('$sub\_');
-    if (preFetch == 'list') this.$collections['$sub\_'].getList();
-  }
+  // $buildCollections(element, id) {
+  //   var commands = element.split('.');
+  //   var sub = commands[0];
+  //   var preFetch;
+  //   if (commands.length > 1) {
+  //     preFetch = commands[1];
+  //   }
+  //   print($$parseId());
+  //   // print("${$path}$sub");
+  //   $collections['$sub\_'] = EngageFirestore.getInstance("${$path}$sub");
+  //   $omitList.add('$sub\_');
+  //   if (preFetch == 'list') $collections['$sub\_'].getList();
+  // }
 
-  Future $save([data]) {
-    if (data != null) this.$$updateDoc(data);
+  Future $save([data]) async {
+    if (data != null) $$updateDoc(data);
     try {
-      dynamic saved = this.$engageFireStore.save(this);
-      $publish($doc);
-      return saved;
+      return $engageFireStore.save($doc);
     } catch (error) {
       print('EngageDoc.save: $error');
     }
   }
+  
+  Future $saveAndPublish(data) async {
+    await $save(data);
+    $publish($doc);
+  }
 
   Future $update([data]) {
-    this.$$updateDoc(data);
-    if (data != null) this.$$updateDoc(data);
-    return this.$engageFireStore.update(this);
+    $$updateDoc(data);
+    if (data != null) $$updateDoc(data);
+    return $engageFireStore.update($doc);
   }
 
   Future $set([data]) {
-    if (data != null) this.$$updateDoc(data);
-    return this.$engageFireStore.update(this);
+    if (data != null) $$updateDoc(data);
+    return $engageFireStore.update($doc);
   }
 
   Future $get() async {
-    this.$doc = await this.$engageFireStore.get(this.$id);
-    return this.$doc;
+    return $engageFireStore.get($id);
   }
 
   Future $attachOwner() async {
-    this.$owner = await EngageAuth().currentUserId;
-    this.$doc['\$owner'] = this.$owner;
-    return this.$save();
+    $owner = await EngageAuth().currentUserId;
+    $doc['\$owner'] = $owner;
+    return $save();
   }
 
   Future $isOwner([userId]) async {
-    userId ??= this.$doc['\$owner'];
+    userId ??= $doc['\$owner'];
     if (userId == null) {
-      await this.$attachOwner();
+      await $attachOwner();
     }
-    return this.$doc['\$owner'] == (await EngageAuth().currentUserId);
+    return $doc['\$owner'] == (await EngageAuth().currentUserId);
   }
 
   Future<dynamic> $(String key, {dynamic value, dynamic defaultValue, int increment, int decrement, Function done, save = true, recordEvent = false}) async {
     if (increment != null && increment > 0) {
-      value ??= this.$doc[key] ?? increment is double ? 0.0 : 0;
+      value ??= $doc[key] ?? increment is double ? 0.0 : 0;
       value += increment;
     }
     if (decrement != null && decrement > 0) {
-      value ??= this.$doc[key] ?? increment is double ? 0.0 : 0;
+      value ??= $doc[key] ?? increment is double ? 0.0 : 0;
       value -= decrement;
     }
     if (defaultValue != null) {
       value = defaultValue;
     }
     if (value == null) {
-      if (done != null) done(this.$doc[key], key);
-      return this.$doc[key];
+      if (done != null) done($doc[key], key);
+      return $doc[key];
     }
-    this.$doc[key] = value;
-    if(save) await this.$save();
+    $doc[key] = value;
+    if(save) await $save();
     if (done != null) done(value, key);
-    if (recordEvent) await $$recordEvent({key: this.$doc[key]});
-    return this.$doc[key];
+    if (recordEvent) await $$recordEvent({key: $doc[key]});
+    return $doc[key];
   }
 
   Future<dynamic> $map(Map doc, {bool increment, bool decrement, Function done, save = true, recordEvent = false}) async {
@@ -230,18 +237,18 @@ class EngageDoc {
         $(key, value: value, save: false, recordEvent: false );
       }
     });
-    if(save) await this.$save();
+    if(save) await $save();
     if (done != null) done(doc);
     if (recordEvent) await $$recordEvent(doc);
-    return this.$doc;
+    return $doc;
   }
 
   $addFiles({File file, String path, String id}) async {
     dynamic storage = EngageFire.storage;
-    await storage.uploadFile(file, this.$path);
-    this.$uploadTask = await storage.uploadFile(file, path ?? this.$path);
-    Map image = await storage.getFileMeta(this.$uploadTask);
-    await EngageFirestore.getInstance("${this.$path}/\$files").save({'\$id': id, ...image});
+    await storage.uploadFile(file, $path);
+    $uploadTask = await storage.uploadFile(file, path ?? $path);
+    Map image = await storage.getFileMeta($uploadTask);
+    await EngageFirestore.getInstance("${$path}/\$files").save({'\$id': id, ...image});
     return image;
   }
 
@@ -254,15 +261,15 @@ class EngageDoc {
     } else {
       file ??= storage.pickImage();
     }
-    image = $addFiles(file: file, id: '\$image', path: "${this.$path}/\$image");
+    image = $addFiles(file: file, id: '\$image', path: "${$path}/\$image");
     $doc['\$image'] = image['url'];
     if (thumbnail != null) {
       String width = thumbnail.width;
       String height = thumbnail.height;
-      thumb = $addFiles(file: file, id: '\$thumb', path: "${this.$path}/\$thumb");
+      thumb = $addFiles(file: file, id: '\$thumb', path: "${$path}/\$thumb");
       $doc['\$thumb'] = thumb['url'];
     }
-    await this.$save();
+    await $save();
     return {
       'image': image,
       'thumb': thumb,
@@ -270,28 +277,28 @@ class EngageDoc {
   }
 
   $removeImage() async {
-    await EngageFirestore.getInstance("${this.$path}/\$files").remove('\$image');
-    await EngageFirestore.getInstance("${this.$path}/\$files").remove('\$thumb');
+    await EngageFirestore.getInstance("${$path}/\$files").remove('\$image');
+    await EngageFirestore.getInstance("${$path}/\$files").remove('\$thumb');
     $doc['\$image'] = '';
     $doc['\$thumb'] = '';
-    await this.$save();
-    return this.$doc;
+    await $save();
+    return $doc;
   }
 
   $removeFile(String fileId) async {
-    return await EngageFirestore.getInstance("${this.$path}/\$files").remove(fileId);
+    return await EngageFirestore.getInstance("${$path}/\$files").remove(fileId);
   }
 
   $getFiles() async {
-    return (await EngageFirestore.getInstance('${this.$path}/\$files')).getList();
+    return (await EngageFirestore.getInstance('${$path}/\$files')).getList();
   }
 
   $getFile(String fileId) async {
-    return (await EngageFirestore.getInstance('${this.$path}/\$files')).get(fileId);
+    return (await EngageFirestore.getInstance('${$path}/\$files')).get(fileId);
   }
 
   $downloadFile(String fileId) async {
-    Map fileDoc = await (this.$getSubCollection('\$files')).get(fileId);
+    Map fileDoc = await ($getSubCollection('\$files')).get(fileId);
     return await EngageFire.storage.downloadFile(fileDoc['url']);
   }
 
@@ -301,24 +308,24 @@ class EngageDoc {
     //   const r = confirm('Are you sure?');
     //   if (!r) return;
     // }
-    dynamic result = this.$engageFireStore.remove(this.$id);
-    this.$engageFireStore.list = this.$engageFireStore.list.where((item) => item.$id != this.$id);
+    dynamic result = $engageFireStore.remove($id);
+    $engageFireStore.list = $engageFireStore.list.where((item) => item.$id != $id);
     return result;
   }
 
    $$updateDoc([Map data]) {
      if (data != null) {
-        this.$doc = this.$engageFireStore.omitFire(data);
+        $doc = $engageFireStore.omitFire(data);
      }
-    return this.$doc;
+    return $doc;
   }
 
   EngageFirestore $getSubCollection(String collection, [options]) {
-    return EngageFirestore.getInstance("${this.$path}/$collection", options: options);
+    return EngageFirestore.getInstance("${$path}/$collection", options: options);
   }
 
   // Future $watch(cb) async {
-  //   return this.$engageFireStore.watch(this.$id, cb);
+  //   return $engageFireStore.watch($id, cb);
   // }
 
   
@@ -326,31 +333,31 @@ class EngageDoc {
   //   ref
   //     .document($id)
   //     .snapshots()
-  //     .listen((doc) => doc.exists ? cb(this.addFire(doc.data, doc.documentID), doc) : cb(null, doc));
+  //     .listen((doc) => doc.exists ? cb(addFire(doc.data, doc.documentID), doc) : cb(null, doc));
   // }
 
   Future $backup(bool deep, String backupPath) async {
-    return this.$engageFireStore.backupDoc(this.$doc, deep, backupPath);
+    return $engageFireStore.backupDoc($doc, deep, backupPath);
   }
 
   $exists() {
-    return this.$doc != null;
+    return $doc != null;
   }
 
   $getModel() {
-    return this.$engageFireStore.getModel();
+    return $engageFireStore.getModel();
   }
 
   Future $changeId(String newId) async {
-    await this.$engageFireStore.replaceIdOnCollection(this.$id, newId);
-    this.$id = newId;
-    this.$$updateDoc();
+    await $engageFireStore.replaceIdOnCollection($id, newId);
+    $id = newId;
+    $$updateDoc();
   }
 
   Future $swapPosition(x, y, [List list]) async {
-    list = list ?? this.$$getSortedParentList();
+    list = list ?? $$getSortedParentList();
     if (list.every((item) => item.$doc['position'] != null)) {
-      await this.$engageFireStore.buildListPositions();
+      await $engageFireStore.buildListPositions();
     }
     var itemX = list[x];
     var itemY = list[y];
@@ -358,28 +365,28 @@ class EngageDoc {
     var itemYPos = itemY.$doc['position'] || y + 1;
     itemX.$doc['position'] = itemYPos;
     itemY.$doc['position'] = itemXPos;
-    this.$engageFireStore.list[y] = itemX;
-    this.$engageFireStore.list[x] = itemY;
+    $engageFireStore.list[y] = itemX;
+    $engageFireStore.list[x] = itemY;
     await itemX.$save();
     await itemY.$save();
   }
 
   Future $moveUp() async {
     var list = $$getSortedParentList();
-    int index = list.findIndex((item) => item.$doc['position'] == this.$doc['position']);
+    int index = list.findIndex((item) => item.$doc['position'] == $doc['position']);
     if (index <= 0) {
       return;
     }
-    await this.$swapPosition(index, index-1, list);
+    await $swapPosition(index, index-1, list);
   }
 
   Future $moveDown() async {
     var list = $$getSortedParentList();
-    int index = list.findIndex((item) => item['position'] == this.$doc['position']);
+    int index = list.findIndex((item) => item['position'] == $doc['position']);
     if (index >= list.length - 1) {
       return;
     }
-    await this.$swapPosition(index, index + 1, list);
+    await $swapPosition(index, index + 1, list);
   }
 
   Future $setPosition(index) {
@@ -390,15 +397,17 @@ class EngageDoc {
 
   bool $setDefaults(Map data, {userId, dateDMY, doc}) {
     doc ??= $doc;
-    $engageFireStore ??= $$setupParentCollection();
+    if ($engageFireStore == null) {
+      $setCollection();
+    }
     var changed = false;
     data.forEach((key, value) {
-      if ($doc[key] == null && value != null && this.$engageFireStore != null) {
-        $doc[key] = this.$engageFireStore.getStringVar(value, userId: userId, dateDMY: dateDMY);
+      if ($doc[key] == null && value != null && $engageFireStore != null) {
+        $doc[key] = $engageFireStore.getStringVar(value, userId: userId, dateDMY: dateDMY);
         changed = true;
       }
-      if (this.$engageFireStore == null) {
-        print('$_path missing collection (this.\$engageFireStore)');
+      if ($engageFireStore == null) {
+        print('$_path missing collection (\$engageFireStore)');
       }
     });
     return changed;
@@ -427,7 +436,7 @@ class EngageDoc {
   }
 
   $$getSortedParentList() {
-    return this.$engageFireStore.sortListByPosition().list;
+    return $engageFireStore.sortListByPosition().list;
   }
 
   $$difference(Map object, base) {
@@ -452,7 +461,7 @@ class EngageDoc {
   Future $$recordEvent(Map doc) async {
     dynamic result;
     if (doc != null) {
-      result = await EngageFirestore.getInstance("${this.$path}/events").save(doc);
+      result = await EngageFirestore.getInstance("${$path}/events").save(doc);
     }
     return result;
   }

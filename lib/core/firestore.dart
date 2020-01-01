@@ -201,16 +201,11 @@ class EngageFirestore {
   }
 
   addFire(data, String id, {ignoreInit = false}) {
-    if (data == null && id != null) {
-      if (data is EngageDoc) {
-        data.$id = id;
-        data.$doc['\$id'] = id;
-      } else {
-        data['\$id'] = id;
-      }
+    if (data == null && id != null && data is EngageDoc) {
+      data.$setId(id);
     }
     if (EngageDoc != null && data is Map) {
-      return EngageDoc(data: data, path: path, ignoreInit: ignoreInit);
+      return EngageDoc(data: data, path: '$path/$id', ignoreInit: ignoreInit);
     }
     return data;
   }
