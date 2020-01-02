@@ -369,11 +369,19 @@ class EngageFirestore {
     }
   }
 
-  Future<EngageDoc> getOrCreate({Map defaultData, Map filter}) async {
+  Future<EngageDoc> getOrCreate({Map defaultData, Map filter, String id}) async {
+    if (id is int) {
+      id = id.toString();
+    }
     String userId = await EngageAuth().currentUserId;
     defaultData = getFilterDefaults(defaultData, filter, userId: userId);
     EngageDoc doc;
-    EngageDoc found = await getFirst(filter: filter);
+    EngageDoc found;
+    if (id != null) {
+      found = await get(id);
+    } else {
+      found = await getFirst(filter: filter);
+    }
     if (found == null) {
       Map<String, dynamic> newMap = {...defaultData};
       doc = await add(newMap);

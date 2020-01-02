@@ -473,7 +473,10 @@ class EngageDoc {
 
   Future $toggleSub(String collection, dynamic data) async {
     EngageFirestore ref = $getSubCollection(collection);
-    EngageDoc doc = await ref.getOrCreate(defaultData: data);
+    EngageDoc doc = await ref.getOrCreate(
+      id: data['\$id'] ?? data['id'], 
+      defaultData: data
+    );
     if (doc.$isNew) {
       return true;
     } else {
