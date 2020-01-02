@@ -8,8 +8,8 @@ import 'engagefire.dart';
 /*
  * TODO:
  * [ ] Increment multiple values by given Map of values
- * [ ] Toggle subcollection
- * [ ] add and remove subCollection
+ * [X] Toggle subcollection
+ * [X] add and remove subCollection
  * [ ] add event to subCollection
  * [ ] get subCollectionList
  * [ ] remove sub Collections from this and make it so we set it up in the beginning or model
@@ -433,7 +433,6 @@ class EngageDoc {
     } else if (listener != null) {
       _ps.unsubscribe($path, listener);
     }
-    
   }
 
   $$getSortedParentList() {
@@ -467,7 +466,7 @@ class EngageDoc {
     return result;
   }
 
-  Future<bool> $isSubToggled(collection, id) async {
+  Future<bool> $subExists(collection, id) async {
     EngageFirestore ref = $getSubCollection(collection);
     var doc = await ref.get(id, pure: true);
     return doc != null;
@@ -506,6 +505,12 @@ class EngageDoc {
 
   Future<EngageFirestore> $getSub(String collection, [options]) async {
     return $getSubCollection(collection, options);
+  }
+
+  Future $subEvent(Map subDoc) async {
+    EngageFirestore ref = $getSubCollection(collection);
+    EngageDoc doc = await ref.getOrCreate(defaultData: data);
+    return doc.$$recordEvent(subDoc);
   }
 
   // static getInstance(

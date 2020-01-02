@@ -21,7 +21,7 @@ class _FirestoreSandboxState extends State<FirestoreSandbox> {
     user = EngageDoc(path: 'testing/{userId}');
     user.$toggleSub('favorites', {'\$id': 'group'});
     Future.delayed(Duration(seconds: 4), () async {
-      print(await user.$isSubToggled('favorites', 'group'));
+      print(await user.$subExists('favorites', 'group'));
       // EngageFirestore favorites = user.$collections['favorites_'];
       // print(favorites);
       // await favorites.save(<String, dynamic>{'name': 'test', 'age': 12});
