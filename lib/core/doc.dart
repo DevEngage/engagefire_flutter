@@ -310,7 +310,7 @@ class EngageDoc {
     //   if (!r) return;
     // }
     dynamic result = $engageFireStore.remove($id);
-    $engageFireStore.list = $engageFireStore.list.where((item) => item.$id != $id);
+    $engageFireStore.list = $engageFireStore.list.where((item) => item.$id != $id).toList();
     return result;
   }
 
@@ -467,9 +467,9 @@ class EngageDoc {
     return result;
   }
 
-  Future $isSubToggled(collection, id) async {
+  Future<bool> $isSubToggled(collection, id) async {
     EngageFirestore ref = $getSubCollection(collection);
-    EngageDoc doc = await ref.get(id, pure: true);
+    var doc = await ref.get(id, pure: true);
     return doc != null;
   }
 
