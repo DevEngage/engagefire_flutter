@@ -338,13 +338,13 @@ class EngageFirestore {
     return what;
   }
 
-  Future<dynamic> get(String docId, {CollectionReference listRef, blank = true, pure}) async {
+  Future<dynamic> get(String docId, {CollectionReference listRef, blank = true, pure = false}) async {
     $loading = true;
     listRef ??= ref;
     docId = getStringVar(docId);
     if (pure) {
       dynamic doc = await listRef.document(docId).get();
-      return doc.exists ? doc.data : {};
+      return doc.exists ? doc.data : null;
     }
     try {
       DocumentSnapshot doc;
@@ -357,7 +357,12 @@ class EngageFirestore {
         else this.list.add(fireDoc);
         return fireDoc;
       }
-      return setDoc({'\$updatedAt': DateTime.now().millisecondsSinceEpoch, '\$id': docId}, docRef: listRef);
+      return setDoc({
+        '\$updatedAt': DateTime.now().millisecondsSinceEpoch, 
+        '\$id': docId
+        }, 
+        docRef: listRef.document(docId)
+      );
     } catch (error) {
       print(error);
       return null;
@@ -372,6 +377,7 @@ class EngageFirestore {
     if (found == null) {
       Map<String, dynamic> newMap = {...defaultData};
       doc = await add(newMap);
+      doc.$isNew = true;
     } else {
       doc = found;
       if (doc.$setDefaults(defaultData, userId: userId)) {
@@ -403,16 +409,21 @@ class EngageFirestore {
     if (debug) {
       print('set $newDoc');
     }
-    newDoc = omitFire(newDoc);
-    newDoc['\$createdAt'] = DateTime.now().millisecondsSinceEpoch;
-    newDoc['\$timezoneOffset'] = DateTime.now().timeZoneOffset.toString();
     if (newDoc is EngageDoc) {
+      newDoc.$doc = omitFire(newDoc.$doc);
+      newDoc.$doc['\$createdAt'] = DateTime.now().millisecondsSinceEpoch;
+      newDoc.$doc['\$updatedAt'] = DateTime.now().millisecondsSinceEpoch;
+      newDoc.$doc['\$timezoneOffset'] = DateTime.now().timeZoneOffset.toString();
       docRef ??= newDoc.$docRef;
       await docRef.setData(newDoc.$doc);
     } else {
-      await docRef.document(newDoc).setData(newDoc as Map<String, dynamic>);
+      newDoc = omitFire(newDoc);
+      newDoc['\$createdAt'] = DateTime.now().millisecondsSinceEpoch;
+      newDoc['\$updatedAt'] = DateTime.now().millisecondsSinceEpoch;
+      newDoc['\$timezoneOffset'] = DateTime.now().timeZoneOffset.toString();
+      await docRef.setData(newDoc);
     }
-    return addFire(newDoc, docRef.documentID);
+    return addFire(newDoc, newDoc['\$id'] ?? newDoc['id'] ?? docRef.documentID);
   }
 
   Future<dynamic> setWithId(String id, {dynamic newDoc}) async {
@@ -459,10 +470,10 @@ class EngageFirestore {
     if (newDoc is EngageDoc) {
       newDoc.$loading = true;
       newDoc.$doc['\$updatedAt'] = DateTime.now().millisecondsSinceEpoch;
-    } else {
-      newDoc['\$loading'] = true;
-      newDoc['\$updatedAt'] = DateTime.now().millisecondsSinceEpoch;
-    }
+    } 
+    // else {
+    //   newDoc['\$updatedAt'] = DateTime.now().millisecondsSinceEpoch;
+    // }
     dynamic doc;
     try {
       if ((newDoc is EngageDoc && newDoc.$id != null) || (newDoc != null && newDoc['\$id'] != null)) {
@@ -479,8 +490,6 @@ class EngageFirestore {
     }
     if (doc is EngageDoc) {
       doc.$loading = false;
-    } else if (doc != null) {
-      doc['\$loading'] = false;
     }
     return doc;
   }

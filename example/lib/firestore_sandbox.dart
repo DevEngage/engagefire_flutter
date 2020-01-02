@@ -19,7 +19,7 @@ class _FirestoreSandboxState extends State<FirestoreSandbox> {
   _FirestoreSandboxState() {
     users = EngageFirestore.getInstance('users');
     user = EngageDoc(path: 'testing/{userId}');
-    user.$toggleSub('favorite', {'\$id': 'group'});
+    user.$toggleSub('favorites', {'\$id': 'group'});
     Future.delayed(Duration(seconds: 4), () async {
       // EngageFirestore favorites = user.$collections['favorites_'];
       // print(favorites);

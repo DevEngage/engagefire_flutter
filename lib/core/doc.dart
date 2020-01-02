@@ -40,6 +40,7 @@ class EngageDoc {
     '\$collection': '',
   };
   String _path;
+  bool $isNew = false;
 
   EngageDoc({path, Map data, ignoreInit = false}) {
     this._path = path;
@@ -97,7 +98,7 @@ class EngageDoc {
     }
   }
 
-  $$validateInit(path) {
+  bool $$validateInit(path) {
     path ??=  _path;
     if (path != null && !$$isPathCorrect(path)) {
       throw 'Path is Collection and not Doc';
@@ -130,7 +131,7 @@ class EngageDoc {
     path ??= $path;
     $$validateInit(path);
     $loading = true;
-    final userId = await EngageAuth().currentUserId;
+    var userId = EngageAuth.user.uid ?? await EngageAuth().currentUserId;
     final isDocPath = $$isPathCorrect(path);
     path = EngageFirestore.replaceTemplateString(path ?? '', userId: userId);
     var docId = $$parseId(path);
@@ -320,8 +321,8 @@ class EngageDoc {
     return $doc;
   }
 
-  EngageFirestore $getSubCollection(String collection, [options]) {
-    return EngageFirestore.getInstance("${$path}/$collection", options: options);
+  EngageFirestore $getSubCollection(String _collection, [options]) {
+    return EngageFirestore.getInstance("${$path}/$_collection", options: options);
   }
 
   // Future $watch(cb) async {
@@ -466,21 +467,21 @@ class EngageDoc {
     return result;
   }
 
-  Future $toggleSub(String collection, data) async {
+  Future $isSubToggled(collection, id) async {
     EngageFirestore ref = $getSubCollection(collection);
-    String id = data is String ? data : data['\$id'];
-    EngageDoc doc = await ref.get(id);
-    if (doc == null && data is String) {
-      await ref.save({
-        $id: id,
-      });
+    EngageDoc doc = await ref.get(id, pure: true);
+    return doc != null;
+  }
+
+  Future $toggleSub(String collection, dynamic data) async {
+    EngageFirestore ref = $getSubCollection(collection);
+    EngageDoc doc = await ref.getOrCreate(defaultData: data);
+    if (doc.$isNew) {
       return true;
-    } else if (doc == null) {
-      await ref.save(data);
+    } else {
+      await doc.$remove();
       return true;
     }
-    await ref.remove(id);
-    return false;
   }
 
   Future $sub(String collection, data) async {
