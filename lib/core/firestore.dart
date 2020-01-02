@@ -378,7 +378,7 @@ class EngageFirestore {
     EngageDoc doc;
     EngageDoc found;
     if (id != null) {
-      found = await get(id);
+      found = await get(id, createIfNull: false);
     } else {
       found = await getFirst(filter: filter);
     }
