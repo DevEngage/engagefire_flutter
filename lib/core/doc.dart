@@ -61,11 +61,11 @@ class EngageDoc {
     return doc;
   }
   
-  static Future<EngageDoc> getOrCreate({String path, Map defaultData, Map filter}) async {
+  static Future<EngageDoc> getOrCreate({String path, Map defaultData, Map filter, String id}) async {
     String userId = await EngageAuth().currentUserId;
     path = EngageFirestore.replaceTemplateString(path ?? '', userId: userId);
     EngageFirestore collection = await EngageFirestore.getInstance(path);
-    EngageDoc doc = await collection.getOrCreate(defaultData: defaultData, filter: filter);
+    EngageDoc doc = await collection.getOrCreate(defaultData: defaultData, filter: filter, id: id);
     return doc;
   }
 

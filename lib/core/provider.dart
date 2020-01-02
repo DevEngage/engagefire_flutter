@@ -58,8 +58,8 @@ class EngageProvider extends EngageFirestore with ChangeNotifier {
   }
   
   @override
-  Future<EngageDoc> getOrCreate({Map defaultData, Map filter}) async {
-    return super.getOrCreate(defaultData: defaultData ?? this.defaultData, filter: filter);
+  Future<EngageDoc> getOrCreate({Map defaultData, Map filter, String id}) async {
+    return super.getOrCreate(defaultData: defaultData ?? this.defaultData, filter: filter, id: id);
   }
 
 }

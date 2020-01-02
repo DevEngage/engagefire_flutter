@@ -370,9 +370,6 @@ class EngageFirestore {
   }
 
   Future<EngageDoc> getOrCreate({Map defaultData, Map filter, String id}) async {
-    if (id is int) {
-      id = id.toString();
-    }
     String userId = await EngageAuth().currentUserId;
     defaultData = getFilterDefaults(defaultData, filter, userId: userId);
     EngageDoc doc;
