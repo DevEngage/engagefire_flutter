@@ -10,9 +10,8 @@ import 'engagefire.dart';
  * [ ] Increment multiple values by given Map of values
  * [X] Toggle subcollection
  * [X] add and remove subCollection
- * [ ] add event to subCollection
  * [ ] get subCollectionList
- * [ ] remove sub Collections from this and make it so we set it up in the beginning or model
+ * [X] remove sub Collections from this and make it so we set it up in the beginning or model
  * */
 class EngageDoc {
   static Map<String, EngageDoc> instances = {};
@@ -503,14 +502,8 @@ class EngageDoc {
     return null;
   }
 
-  Future<EngageFirestore> $getSub(String collection, [options]) async {
+  EngageFirestore $getSub(String collection, [options]) {
     return $getSubCollection(collection, options);
-  }
-
-  Future $subEvent(Map subDoc) async {
-    EngageFirestore ref = $getSubCollection(collection);
-    EngageDoc doc = await ref.getOrCreate(defaultData: data);
-    return doc.$$recordEvent(subDoc);
   }
 
   // static getInstance(
