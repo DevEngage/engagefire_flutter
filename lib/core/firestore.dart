@@ -372,7 +372,7 @@ class EngageFirestore {
     }
   }
 
-  Future<EngageDoc> getOrCreate({Map defaultData, Map filter, String id}) async {
+  Future<EngageDoc> getOrCreate({dynamic defaultData, Map filter, String id}) async {
     String userId = await EngageAuth().currentUserId;
     defaultData = getFilterDefaults(defaultData, filter, userId: userId);
     EngageDoc doc;
@@ -383,7 +383,7 @@ class EngageFirestore {
       found = await getFirst(filter: filter);
     }
     if (found == null) {
-      Map<String, dynamic> newMap = {...defaultData};
+      Map<dynamic, dynamic> newMap = {...defaultData};
       doc = await add(newMap);
       doc.$isNew = true;
     } else {
@@ -395,7 +395,7 @@ class EngageFirestore {
     return doc;
   }
 
-  Future<dynamic> add(Map<String, dynamic> newDoc, {dynamic docRef, ignoreInit = false}) async {
+  Future<dynamic> add(dynamic newDoc, {dynamic docRef, ignoreInit = false}) async {
     docRef ??= ref;
     if (newDoc != null && newDoc['\$id'] != null) {
       return this.update(newDoc, docRef: docRef);
@@ -464,7 +464,7 @@ class EngageFirestore {
         documentRef = await doc.$docRef.setData(doc.$doc, merge: true);
       } else {
         documentRef = docRef.document(doc['\$id']);
-        await documentRef.setData(doc as Map<String, dynamic>, merge: true);
+        await documentRef.setData(doc.cast<String, dynamic>(), merge: true);
       }
       return addFire(doc, documentRef.documentID);
     } catch (error) {
