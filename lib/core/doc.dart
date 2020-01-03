@@ -186,8 +186,12 @@ class EngageDoc {
     return $engageFireStore.update($doc);
   }
 
-  Future $get() async {
-    return $engageFireStore.get($id);
+  Future $get({updateDoc = true}) async {
+    final _doc = await $engageFireStore.get($id);
+    if (updateDoc) {
+      $doc = _doc;
+    }
+    return _doc;
   }
 
   Future $attachOwner() async {
@@ -205,6 +209,7 @@ class EngageDoc {
   }
 
   Future<dynamic> $(String key, {dynamic value, dynamic defaultValue, double increment, double decrement, Function done, save = true, recordEvent = false}) async {
+    await $get();
     if (increment != null && increment > 0) {
       value ??= $doc[key] ?? increment is double ? 0.0 : 0;
       value += increment;
@@ -457,7 +462,7 @@ class EngageDoc {
     return defaults;
   }
 
-  Future $$recordEvent(Map doc) async {
+  Future $$recordEvent(dynamic doc) async {
     dynamic result;
     if (doc != null) {
       result = await EngageFirestore.getInstance("${$path}/events").save(doc);
