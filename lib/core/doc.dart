@@ -211,11 +211,11 @@ class EngageDoc {
   Future<dynamic> $(String key, {dynamic value, dynamic defaultValue, double increment, double decrement, Function done, save = true, recordEvent = false}) async {
     await $get();
     if (increment != null && increment > 0) {
-      value ??= $doc[key] ?? increment is double ? 0.0 : 0;
+      value ??= $doc[key] ?? 0;
       value += increment;
     }
     if (decrement != null && decrement > 0) {
-      value ??= $doc[key] ?? increment is double ? 0.0 : 0;
+      value ??= $doc[key] ?? 0;
       value -= decrement;
     }
     if (defaultValue != null) {
