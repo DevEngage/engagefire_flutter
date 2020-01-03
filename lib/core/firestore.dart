@@ -104,7 +104,7 @@ class EngageFirestore {
 
   options([var options ]) {
     options = options ?? { 'loadList': true };
-    if (options.loadList) {
+    if (options['loadList']) {
       this.getList();
     }
     return this;
