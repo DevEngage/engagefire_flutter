@@ -187,9 +187,9 @@ class EngageDoc {
   }
 
   Future $get({updateDoc = true}) async {
-    final _doc = await $engageFireStore.get($id);
+    final _doc = await $engageFireStore.get($id, pure: true);
     if (updateDoc) {
-      $doc = _doc;
+      $doc = {...$doc, ..._doc};
     }
     return _doc;
   }
