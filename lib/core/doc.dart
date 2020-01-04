@@ -208,8 +208,8 @@ class EngageDoc {
     return $doc['\$owner'] == (await EngageAuth().currentUserId);
   }
 
-  Future<dynamic> $(String key, {dynamic value, dynamic defaultValue, double increment, double decrement, Function done, save = true, recordEvent = false}) async {
-    await $get();
+  Future<dynamic> $(String key, {dynamic value, dynamic defaultValue, double increment, double decrement, Function done, save = true, recordEvent = false, refreshDoc = true}) async {
+    if (recordEvent) await $get();
     if (increment != null && increment > 0) {
       value ??= $doc[key] ?? 0;
       value += increment;
@@ -232,14 +232,21 @@ class EngageDoc {
     return $doc[key];
   }
 
-  Future<dynamic> $map(Map doc, {bool increment, bool decrement, Function done, save = true, recordEvent = false}) async {
+  Future<dynamic> $map(Map doc, {bool increment, bool decrement, Function done, save = true, recordEvent = false, refreshDoc = true}) async {
+    if (recordEvent) await $get();
     doc.forEach((key, value) {
       if (increment) {
-        $(key, increment: value, save: false, recordEvent: false);
+        if (value != null && value > 0) {
+          $doc[key] ??= $doc[key] ?? 0;
+          $doc[key] += value;
+        }
       } else if (decrement) {
-        $(key, decrement: value, save: false, recordEvent: false );
+        if (value != null && value > 0) {
+          $doc[key] ??= $doc[key] ?? 0;
+          $doc[key] -= value;
+        }
       } else {
-        $(key, value: value, save: false, recordEvent: false );
+        $doc[key] = value;
       }
     });
     if(save) await $save();
