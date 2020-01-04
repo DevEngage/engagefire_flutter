@@ -409,7 +409,7 @@ class EngageFirestore {
     newDoc['\$updatedAt'] = DateTime.now().millisecondsSinceEpoch;
     newDoc['\$timezoneOffset'] = DateTime.now().timeZoneOffset.toString();
     newDoc['\$id'] = blank.documentID;
-    await blank.setData(newDoc);
+    await blank.setData(newDoc.cast<String, dynamic>());
     return this.addFire(newDoc, blank.documentID, ignoreInit: ignoreInit);
   }
 
@@ -423,13 +423,13 @@ class EngageFirestore {
       newDoc.$doc['\$updatedAt'] = DateTime.now().millisecondsSinceEpoch;
       newDoc.$doc['\$timezoneOffset'] = DateTime.now().timeZoneOffset.toString();
       docRef ??= newDoc.$docRef;
-      await docRef.setData(newDoc.$doc);
+      await docRef.setData(newDoc.$doc.cast<String, dynamic>());
     } else {
       newDoc = omitFire(newDoc);
       newDoc['\$createdAt'] = DateTime.now().millisecondsSinceEpoch;
       newDoc['\$updatedAt'] = DateTime.now().millisecondsSinceEpoch;
       newDoc['\$timezoneOffset'] = DateTime.now().timeZoneOffset.toString();
-      await docRef.setData(newDoc);
+      await docRef.setData(newDoc.cast<String, dynamic>());
     }
     return addFire(newDoc, newDoc['\$id'] ?? newDoc['id'] ?? docRef.documentID);
   }
@@ -461,7 +461,7 @@ class EngageFirestore {
       doc = omitFire(doc);
       if (doc is EngageDoc) {
         documentRef ??= doc.$docRef;
-        documentRef = await doc.$docRef.setData(doc.$doc, merge: true);
+        documentRef = await doc.$docRef.setData(doc.$doc.cast<String, dynamic>(), merge: true);
       } else {
         documentRef = docRef.document(doc['\$id']);
         await documentRef.setData(doc.cast<String, dynamic>(), merge: true);
@@ -567,7 +567,7 @@ class EngageFirestore {
     data = await this._db.document(oldPath).get();
     Map record = data.data;
     print('record move $record');
-    await this._db.document(newPath).setData(record);
+    await this._db.document(newPath).setData(record.cast<String, dynamic>());
     return this._db.document(oldPath).delete();
   }
 
@@ -578,7 +578,7 @@ class EngageFirestore {
     Map record = data.data;
     if (updateTimestamp) record['\$updatedAt'] = DateTime.now().millisecondsSinceEpoch;
     print('record move $record');
-    return this._db.document(newPath).setData(record);
+    return this._db.document(newPath).setData(record.cast<String, dynamic>());
   }
 
   Future backupDoc(doc, [deep = true, backupPath = '_backups']) async {
