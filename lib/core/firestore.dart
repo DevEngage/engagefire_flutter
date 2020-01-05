@@ -187,7 +187,7 @@ class EngageFirestore {
 
   Future<List> getList({CollectionReference listRef, Map filter, limit}) async {
     $loading = true;
-    dynamic query = buildTemplateQuery(query: listRef ?? ref, filter: filter);
+    dynamic query = await buildTemplateQuery(query: listRef ?? ref, filter: filter);
     if (limit != null) query.limit(limit);
     QuerySnapshot collection;
     collection = await query.getDocuments();
