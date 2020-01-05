@@ -139,8 +139,8 @@ class EngageDoc {
     $$validateInit(path);
     // var userId = EngageAuth.user.uid; // ?? await EngageAuth().currentUserId;
     path = EngageFirestore.replaceTemplateString(path ?? '', userId: EngageAuth.user.uid ?? '');
-    $$parseId(path);
-    $setId($id);
+    var userId = $$parseId(path);
+    $setId(userId);
     $setCollection(path);
   }
 
