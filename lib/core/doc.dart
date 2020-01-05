@@ -142,6 +142,9 @@ class EngageDoc {
     var userId = $$parseId(path);
     $setId(userId);
     $setCollection(path);
+    if (data != null) {
+      $doc = data;
+    }
   }
 
   Future $save([data]) async {
