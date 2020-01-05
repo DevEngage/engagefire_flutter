@@ -4,3 +4,4 @@
 library engage_web;
 
 export 'core/firestore.dart';
+export 'core/state.dart';

@@ -3,6 +3,7 @@ import 'package:engagefire/core/auth.dart';
 import 'package:engagefire/core/doc.dart';
 import 'package:engagefire/core/pubsub.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:engagefire/core/state.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'omittedList.dart';
 
@@ -27,9 +28,13 @@ class EngageFirestore {
   final EngagePubsub _ps = engagePubsub;
   CollectionReference ref;
 
+  // State System for lists
+  Map<String, EngageState> streams = {};
+
   List<String> omitList;
   List<String> subCollections = [];
   List list = [];
+
   List model = [];
 
   String sortedBy = '';
@@ -180,6 +185,27 @@ class EngageFirestore {
     bool isNull,
      */
 
+  buildQueryStateString([filter, limit]) {
+    List<String> list = [];
+    filter.forEach((key, value) {
+      List<String> keys = key.split('.');
+      String field = keys[0] ?? '';
+      String type = keys[1] ?? '';
+      list.add('$field.$type.$value');
+    });
+    return list;
+  }
+
+  setStream([value, name = 'all']) {
+    getStream(name).repalce(value);
+    return getStream(name);
+  }
+
+  getStream([name = 'all']) {
+    streams[name] = EngageState.getState(path: '$path.$name', stateValue: []);
+    return streams[name];
+  }
+
   Future<EngageDoc> getFirst({CollectionReference listRef, Map filter}) async {
     var item = await getList(listRef: listRef, filter: filter, limit: 1);
     return item.isEmpty ? null : item[0];
@@ -192,6 +218,11 @@ class EngageFirestore {
     QuerySnapshot collection;
     collection = await query.getDocuments();
     list = await this.addFireList(collection);
+    if (filter != null) {
+      setStream(List<dynamic>.from(list), buildQueryStateString(filter));
+    } else {
+      setStream(List<dynamic>.from(list));
+    }
     $loading = false;
     return list;
   }
@@ -544,11 +575,11 @@ class EngageFirestore {
       query = buildQuery(filter, query);
     }
     if (pure) {
-    return query.snapshots().map((list) =>
+      return query.snapshots().map((list) =>
         list.documents.map((doc) => doc.data).toList());
     }
     return query.snapshots().map((list) =>
-        list.documents.map((doc) => EngageDoc.fromFirestore(doc)).toList());
+      list.documents.map((doc) => EngageDoc.fromFirestore(doc)).toList());
   }
 
   /*
