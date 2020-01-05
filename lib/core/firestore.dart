@@ -45,7 +45,7 @@ class EngageFirestore {
     init();
   }
 
-  Future<void> init() {
+  init() {
     _updateUser(EngageAuth.user);
     path = this.getStringVar(path);
 
@@ -529,6 +529,11 @@ class EngageFirestore {
       value = addFireList(value);
     });
     return listRef.snapshots().transform(transformer);
+  }
+
+  Stream<List<EngageDoc>> stream() {
+    return ref.snapshots().map((list) =>
+        list.documents.map((doc) => EngageDoc.fromFirestore(doc)).toList());
   }
 
   /*

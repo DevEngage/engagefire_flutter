@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'firestore.dart';
 
+
 class EngageAuth {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   static FirebaseUser user;
@@ -28,6 +29,10 @@ class EngageAuth {
   Future<FirebaseUser> get currentUser async => EngageAuth.user ?? await _auth.currentUser();
   Future<String> get currentUserId async => user != null ? EngageAuth.user.uid : (await currentUser).uid;
   Stream<FirebaseUser> get streamUser => _auth.onAuthStateChanged;
+
+  Stream<FirebaseUser> get onAuthStateChanged {
+    return _auth.onAuthStateChanged;
+  }
 
   Future<FirebaseUser> googleSignIn() async {
     try {

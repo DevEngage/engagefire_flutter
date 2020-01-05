@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:engagefire/core/firestore.dart';
 import 'package:engagefire/core/pubsub.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -15,7 +16,6 @@ import 'engagefire.dart';
  * */
 class EngageDoc {
   static Map<String, EngageDoc> instances = {};
-  // static Map<String, EngageDoc> subCollections = {};
   final EngagePubsub _ps = engagePubsub;
   dynamic $ref;
   dynamic $docRef;
@@ -28,8 +28,6 @@ class EngageDoc {
   StorageUploadTask $uploadTask;
   bool $loading = true;
   Map $collections = {};
-  List<String> $collectionsList = [];
-  List<String> $omitList = [];
   List relations = [];
   int position;
   Map namedListener = { };
@@ -41,9 +39,20 @@ class EngageDoc {
   String _path;
   bool $isNew = false;
 
-  EngageDoc({path, Map data, ignoreInit = false}) {
+  EngageDoc({path, Map data, id, ignoreInit = false}) {
+    if (id) $id = id;
     this._path = path;
     if (!ignoreInit && path != null) $$setupDoc(path, data);
+  }
+
+  factory EngageDoc.fromMap(Map data) {
+    data = data ?? { };
+    return EngageDoc(data: data);
+  }
+
+  factory EngageDoc.fromFirestore(DocumentSnapshot doc) {
+    Map data = doc.data;
+    return EngageDoc(data: data, id: doc.documentID);
   }
 
   static Future<EngageDoc> get({String path, Map data, Map defaultData, bool saveDefaults = false}) async {
@@ -100,7 +109,7 @@ class EngageDoc {
   bool $$validateInit(path) {
     path ??=  _path;
     if (path != null && !$$isPathCorrect(path)) {
-      throw 'Path is Collection and not Doc';
+      throw 'Path is a Collection and not a Doc';
     } else if (path == null) {
       throw 'Path is Empty';
     }
@@ -126,46 +135,24 @@ class EngageDoc {
     return docId;
   }
 
-  $$setupDoc([String path = '', data]) async {
+  $$setupDoc([String path = '', data]) {
     path ??= $path;
     $$validateInit(path);
-    $loading = true;
-    var userId = EngageAuth.user.uid ?? await EngageAuth().currentUserId;
-    final isDocPath = $$isPathCorrect(path);
-    path = EngageFirestore.replaceTemplateString(path ?? '', userId: userId);
-    var docId = $$parseId(path);
-    $setId(docId);
+    // var userId = EngageAuth.user.uid; // ?? await EngageAuth().currentUserId;
+    path = EngageFirestore.replaceTemplateString(path ?? '', userId: EngageAuth.user.uid ?? '');
+    $$parseId(path);
+    $setId($id);
     $setCollection(path);
-    if (isDocPath && data == null) {
-      data = await $engageFireStore.get($id, pure: true);
-    }
-    if (data != null) {
-      $doc = {...$doc, ...data, '\$collection': $collection, '\$id': $id};
-    } else if ($id != null) {
-      $doc = {...$doc, '\$updatedAt': DateTime.now().millisecondsSinceEpoch, '\$id': $id};
-    }
-    $loading = false;
   }
 
-  // $buildCollections(element, id) {
-  //   var commands = element.split('.');
-  //   var sub = commands[0];
-  //   var preFetch;
-  //   if (commands.length > 1) {
-  //     preFetch = commands[1];
-  //   }
-  //   print($$parseId());
-  //   // print("${$path}$sub");
-  //   $collections['$sub\_'] = EngageFirestore.getInstance("${$path}$sub");
-  //   $omitList.add('$sub\_');
-  //   if (preFetch == 'list') $collections['$sub\_'].getList();
-  // }
-
   Future $save([data]) async {
+    $loading = true;
     if (data != null) $$updateDoc(data);
     try {
+      $loading = false;
       return $engageFireStore.save($doc);
     } catch (error) {
+      $loading = false;
       print('EngageDoc.save: $error');
     }
   }
@@ -187,11 +174,13 @@ class EngageDoc {
   }
 
   Future $get({updateDoc = true}) async {
-    final _doc = await $engageFireStore.get($id, pure: true);
-    if (updateDoc && _doc != null) {
-      $doc = {...$doc, ..._doc};
+    $loading = true;
+    final data = await $engageFireStore.get($id, pure: true);
+    if (updateDoc && data != null) {
+      $doc = {...$doc, ...data, '\$collection': $collection, '\$id': $id};
     }
-    return _doc;
+    $loading = false;
+    return data;
   }
 
   Future $attachOwner() async {
@@ -336,17 +325,17 @@ class EngageDoc {
     return EngageFirestore.getInstance("${$path}/$_collection", options: options);
   }
 
-  // Future $watch(cb) async {
-  //   return $engageFireStore.watch($id, cb);
-  // }
+  Stream<EngageDoc> $stream(String id) {
+    return $docRef
+        .snapshots()
+        .map((snap) => EngageDoc.fromMap(snap.data));
+  }
 
-  
-  // $listen() {
-  //   ref
-  //     .document($id)
-  //     .snapshots()
-  //     .listen((doc) => doc.exists ? cb(addFire(doc.data, doc.documentID), doc) : cb(null, doc));
-  // }
+  Stream<EngageDoc> $streamData(String id) {
+    return $docRef
+        .snapshots()
+        .map((snap) => snap.data);
+  }
 
   Future $backup(bool deep, String backupPath) async {
     return $engageFireStore.backupDoc($doc, deep, backupPath);
