@@ -27,7 +27,31 @@ class _FirestoreSandboxState extends State<FirestoreSandbox> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(child: FutureBuilder(
+    return Container(child: streamTest()
+    );
+  }
+
+  streamTest() {
+    return StreamBuilder<dynamic>(
+      stream: EngageFirestore.getInstance('testing').stream(),
+      builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+        if (snapshot.hasError) {
+          return new Text("Error!");
+        } else if (snapshot.data == null) {
+          return Text('test');
+        } else {
+          return Column(children: <Widget>[
+            ...snapshot.data.map((item) => Text(item.$doc['name']))
+          ],);
+          // print(snapshot.data);
+        }
+
+        return Text('test');
+    });
+  }
+
+  futureTest() {
+    return FutureBuilder(
       future: users.getOrCreate(defaultData: { 'name': 'James', }, filter: {'userId.isEqualTo.default': '{userId}'}),
       builder: (BuildContext context, AsyncSnapshot<EngageDoc> snapshot) {
         return ListView(children: <Widget>[
@@ -36,6 +60,6 @@ class _FirestoreSandboxState extends State<FirestoreSandbox> {
           if (!snapshot.hasData) Text('Loading'),
         ],);
       }, 
-    ),);
+    );
   }
 }

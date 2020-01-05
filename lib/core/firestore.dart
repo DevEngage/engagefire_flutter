@@ -113,34 +113,34 @@ class EngageFirestore {
   /* 
   field.isEqualTo: 1
   */
-  buildQuery(Map filter, [customRef]) {
-    customRef ??= ref;
+  buildQuery(Map filter, [CollectionReference customRef]) {
+    dynamic queryRef = customRef ?? ref;
     filter.forEach((key, value) {
       List<String> keys = key.split('.');
       String field = keys[0];
       String type = keys[1];
       switch (type) {
         case 'isEqualTo':
-          customRef = customRef.where(field, isEqualTo: value);
+          queryRef = queryRef.where(field, isEqualTo: value);
           break;
         case 'isLessThan':
-          customRef = customRef.where(field, isLessThan: value);
+          queryRef = queryRef.where(field, isLessThan: value);
           break;
         case 'isLessThanOrEqualTo':
-          customRef = customRef.where(field, isLessThanOrEqualTo: value);
+          queryRef = queryRef.where(field, isLessThanOrEqualTo: value);
           break;
         case 'isGreaterThan':
-          customRef = customRef.where(field, isGreaterThan: value);
+          queryRef = queryRef.where(field, isGreaterThan: value);
           break;
         case 'isGreaterThanOrEqualTo':
-          customRef = customRef.where(field, isGreaterThanOrEqualTo: value);
+          queryRef = queryRef.where(field, isGreaterThanOrEqualTo: value);
           break;
         case 'isNull':
-          customRef = customRef.where(field, isNull: value);
+          queryRef = queryRef.where(field, isNull: value);
           break;
       }
     });
-    return customRef;
+    return queryRef;
   }
 
   getFilterDefaults(Map defaults, Map filter, {userId, dateDMY}) {
@@ -158,7 +158,7 @@ class EngageFirestore {
     return defaults;
   }
 
-  Future<CollectionReference> buildTemplateQuery({CollectionReference query, Map filter}) async {
+  Future<dynamic> buildTemplateQuery({dynamic query, Map filter}) async {
     if (filter != null) {
       var userId = await EngageAuth().currentUserId;
       filter.forEach((key, value) => filter[key] = getStringVar(value, userId: userId));
@@ -535,13 +535,17 @@ class EngageFirestore {
     return listRef.snapshots().transform(transformer);
   }
 
-  Stream<List<EngageDoc>> stream({filter, listRef}) {
-    var query = listRef ?? ref;
+  Stream<dynamic> stream({filter, listRef, pure = false}) {
+    dynamic query = listRef ?? ref;
     if (filter != null) {
       filter.forEach((key, value) => filter[key] = getStringVar(value, userId: EngageAuth.user.uid));
     }
     if (filter != null) {
       query = buildQuery(filter, query);
+    }
+    if (pure) {
+    return query.snapshots().map((list) =>
+        list.documents.map((doc) => doc.data).toList());
     }
     return query.snapshots().map((list) =>
         list.documents.map((doc) => EngageDoc.fromFirestore(doc)).toList());

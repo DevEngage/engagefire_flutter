@@ -51,7 +51,7 @@ class EngageDoc {
 
   factory EngageDoc.fromFirestore(DocumentSnapshot doc) {
     Map data = doc.data;
-    return EngageDoc(data: data, id: doc.documentID);
+    return EngageDoc(path: doc.reference.path, data: data, id: doc.documentID);
   }
 
   static Future<EngageDoc> get({String path, Map data, Map defaultData, bool saveDefaults = false}) async {
@@ -117,7 +117,6 @@ class EngageDoc {
 
   bool $$isPathCorrect([path]) {
     List pathList = (path ?? _path ?? '').split('/');
-    print(pathList);
     return pathList.isNotEmpty && pathList.length % 2 == 0;
   }
 
@@ -143,7 +142,7 @@ class EngageDoc {
     $setId(userId);
     $setCollection(path);
     if (data != null) {
-      $doc = data;
+      $doc = data.cast<String, dynamic>();
     }
   }
 
