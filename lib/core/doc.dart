@@ -39,7 +39,7 @@ class EngageDoc {
   bool $isNew = false;
 
   EngageDoc({path, Map data, id, ignoreInit = false}) {
-    if (id) $id = id;
+    if (id != null) $id = id;
     this._path = path;
     if (!ignoreInit && path != null) $$setupDoc(path, data);
   }
