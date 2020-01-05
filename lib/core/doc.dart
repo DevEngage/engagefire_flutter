@@ -8,10 +8,9 @@ import 'engagefire.dart';
 
 /*
  * TODO:
- * [ ] Increment multiple values by given Map of values
+ * [X] Increment multiple values by given Map of values
  * [X] Toggle subcollection
  * [X] add and remove subCollection
- * [ ] get subCollectionList
  * [X] remove sub Collections from this and make it so we set it up in the beginning or model
  * */
 class EngageDoc {

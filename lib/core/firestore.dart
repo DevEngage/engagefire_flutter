@@ -158,6 +158,17 @@ class EngageFirestore {
     return defaults;
   }
 
+  Future buildTemplateQuery({CollectionReference query, Map filter}) async {
+    if (filter != null) {
+      var userId = await EngageAuth().currentUserId;
+      filter.forEach((key, value) => filter[key] = getStringVar(value, userId: userId));
+    }
+    if (filter != null) {
+      query = buildQuery(filter, query);
+    }
+    return query;
+  }
+
   /* 
   where('grower', isEqualTo: 1)
     String field, {
@@ -176,14 +187,7 @@ class EngageFirestore {
 
   Future<List> getList({CollectionReference listRef, Map filter, limit}) async {
     $loading = true;
-    if (filter != null) {
-      var userId = await EngageAuth().currentUserId;
-      filter.forEach((key, value) => filter[key] = getStringVar(value, userId: userId));
-    }
-    dynamic query = listRef ?? ref;
-    if (filter != null) {
-      query = buildQuery(filter, query);
-    }
+    dynamic query = buildTemplateQuery(query: listRef ?? ref, filter: filter);
     if (limit != null) query.limit(limit);
     QuerySnapshot collection;
     collection = await query.getDocuments();
@@ -531,8 +535,9 @@ class EngageFirestore {
     return listRef.snapshots().transform(transformer);
   }
 
-  Stream<List<EngageDoc>> stream() {
-    return ref.snapshots().map((list) =>
+  Stream<List<EngageDoc>> stream({filter, listRef}) {
+    dynamic query = buildTemplateQuery(query: listRef ?? ref, filter: filter);
+    return query.snapshots().map((list) =>
         list.documents.map((doc) => EngageDoc.fromFirestore(doc)).toList());
   }
 
