@@ -199,7 +199,7 @@ class EngageDoc {
   }
 
   Future<dynamic> $(String key, {dynamic value, dynamic defaultValue, double increment, double decrement, Function done, save = true, recordEvent = false, refreshDoc = true}) async {
-    if (recordEvent) await $get();
+    if (refreshDoc) await $get();
     if (increment != null && increment > 0) {
       value ??= $doc[key] ?? 0;
       value += increment;
@@ -223,7 +223,7 @@ class EngageDoc {
   }
 
   Future<dynamic> $map(Map doc, {bool increment, bool decrement, Function done, save = true, recordEvent = false, refreshDoc = true}) async {
-    if (recordEvent) await $get();
+    if (refreshDoc) await $get();
     doc.forEach((key, value) {
       if (increment) {
         if (value != null && value > 0) {
