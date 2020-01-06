@@ -185,15 +185,16 @@ class EngageFirestore {
     bool isNull,
      */
 
-  buildQueryStateString([filter, limit]) {
-    List<String> list = [];
+  buildQueryStateString(Map filter) {
+    List<String> list;
     filter.forEach((key, value) {
       List<String> keys = key.split('.');
-      String field = keys[0] ?? '';
-      String type = keys[1] ?? '';
+      var field = keys[0] ?? '';
+      var type = keys[1] ?? '';
       list.add('$field.$type.$value');
     });
-    return list;
+    list.sort();
+    return list.toString();
   }
 
   setStream([value, name = 'all']) {
@@ -211,16 +212,16 @@ class EngageFirestore {
     return item.isEmpty ? null : item[0];
   }
 
-  Future<List> getList({CollectionReference listRef, Map filter, limit}) async {
+  Future<List> getList({CollectionReference listRef, Map filter, limit, updateStream = false}) async {
     $loading = true;
     dynamic query = await buildTemplateQuery(query: listRef ?? ref, filter: filter);
     if (limit != null) query.limit(limit);
     QuerySnapshot collection;
     collection = await query.getDocuments();
     list = await this.addFireList(collection);
-    if (filter != null) {
+    if (updateStream && filter != null) {
       setStream(List<dynamic>.from(list), buildQueryStateString(filter));
-    } else {
+    } else if (updateStream) {
       setStream(List<dynamic>.from(list));
     }
     $loading = false;
