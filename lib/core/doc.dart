@@ -483,7 +483,7 @@ class EngageDoc {
       return true;
     } else {
       await doc.$remove();
-      return true;
+      return false;
     }
   }
 
