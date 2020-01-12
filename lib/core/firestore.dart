@@ -411,7 +411,7 @@ class EngageFirestore {
   Future<EngageDoc> getOrCreate({dynamic defaultData, Map filter, String id}) async {
     String userId = await EngageAuth().currentUserId;
     defaultData = getFilterDefaults(defaultData, filter, userId: userId);
-    if (defaultData != null && defaultData['\$id'] && id == null) {
+    if (defaultData != null && defaultData['\$id'] != null && id == null) {
       id = defaultData['\$id'];
     }
     EngageDoc doc;
