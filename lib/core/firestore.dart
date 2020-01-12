@@ -374,7 +374,7 @@ class EngageFirestore {
     return what;
   }
 
-  Future<dynamic> get(String docId, {CollectionReference listRef, createIfNull = true, blank = true, pure = false}) async {
+  Future<dynamic> get(String docId, {CollectionReference listRef, createIfNull = false, blank = true, pure = false}) async {
     $loading = true;
     listRef ??= ref;
     docId = getStringVar(docId);
@@ -411,6 +411,9 @@ class EngageFirestore {
   Future<EngageDoc> getOrCreate({dynamic defaultData, Map filter, String id}) async {
     String userId = await EngageAuth().currentUserId;
     defaultData = getFilterDefaults(defaultData, filter, userId: userId);
+    if (defaultData != null && defaultData['\$id'] && id == null) {
+      id = defaultData['\$id'];
+    }
     EngageDoc doc;
     EngageDoc found;
     if (id != null) {
