@@ -140,6 +140,15 @@ class EngageFirestore {
         case 'isGreaterThanOrEqualTo':
           queryRef = queryRef.where(field, isGreaterThanOrEqualTo: value);
           break;
+        case 'arrayContains':
+          queryRef = queryRef.where(field, arrayContains: value);
+          break;
+        case 'arrayContainsAny':
+          queryRef = queryRef.where(field, arrayContains: value);
+          break;
+        case 'whereIn':
+          queryRef = queryRef.where(field, arrayContains: value);
+          break;
         case 'isNull':
           queryRef = queryRef.where(field, isNull: value);
           break;
