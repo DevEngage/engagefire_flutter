@@ -27,7 +27,7 @@ class EngageDoc {
   StorageUploadTask $uploadTask;
   bool $loading = true;
   Map $collections = {};
-  List relations = [];
+  Map $relations = {};
   int position;
   Map namedListener = { };
   Map<String, dynamic> $doc = {
@@ -545,13 +545,16 @@ class EngageDoc {
     if ($doc[field] == null) {
       return;
     }
+    var resolved;
     if ($doc[field] is String) {
-      $doc[field] = await EngageDoc.get(path: $doc[field]);
+      resolved = await EngageDoc.get(path: $doc[field]);
     } else if ($doc[field] is List<String>) {
-      $doc[field] = await Future.wait($doc[field].map((item) => EngageDoc.get(path: item)).toList());
+      resolved = await Future.wait($doc[field].map((item) => EngageDoc.get(path: item)).toList());
     } else if ($doc[field] is List) {
       // TODO: resolve object relations
     }
+    $relations[field] = resolved;
+    $doc[field] = resolved;
     return $doc[field];
   }
 
