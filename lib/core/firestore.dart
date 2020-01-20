@@ -224,13 +224,13 @@ class EngageFirestore {
     return item.isEmpty ? null : item[0];
   }
 
-  Future<List> getList({CollectionReference listRef, Map filter, limit, updateStream = false}) async {
+  Future<List> getList({CollectionReference listRef, Map filter, limit, updateStream = false, List resolve}) async {
     $loading = true;
     dynamic query = await buildTemplateQuery(query: listRef ?? ref, filter: filter);
     if (limit != null) query.limit(limit);
     QuerySnapshot collection;
     collection = await query.getDocuments();
-    list = await this.addFireList(collection);
+    list = await addFireList(collection, resolve: resolve);
     if (updateStream && filter != null) {
       setStream(List<dynamic>.from(list), buildQueryStateString(filter));
     } else if (updateStream) {
@@ -240,26 +240,30 @@ class EngageFirestore {
     return list;
   }
 
-  Future<List> addFireList(QuerySnapshot collection) async {
-    list = [];
+  Future<List> addFireList(QuerySnapshot collection, {List resolve}) async {
+    List<Future> list = [];
     if (collection != null && collection.documents != null) {
-      collection.documents.forEach((DocumentSnapshot doc) => doc.exists ? list.add(this.addFire(doc.data, doc.documentID)) : null);
+      collection.documents.forEach((DocumentSnapshot doc) => doc.exists ? list.add(addFire(doc.data, doc.documentID, resolve: resolve)) : null);
     }
-    return list;
+    return list is List<Future> ? Future.wait(list) : null;
   }
 
-  addFire(data, String id, {ignoreInit = false}) {
+  Future addFire(data, String id, {ignoreInit = false, List resolve}) async {
     if (data == null && id != null && data is EngageDoc) {
       data.$setId(id);
     }
     if (EngageDoc != null && data is Map) {
-      return EngageDoc(data: data, path: '$path/$id', ignoreInit: ignoreInit);
+      var doc = EngageDoc(data: data, path: '$path/$id', ignoreInit: ignoreInit);
+      if (resolve != null)  {
+        await Future.wait(resolve.map((item) => doc.$getRelations(field: item)));
+      }
+      return doc;
     }
     return data;
   }
 
   omitFireList(List list) {
-    return list.map(this.omitFire);
+    return list.map(omitFire);
   }
 
   omitFire(dynamic payload) {
@@ -399,7 +403,7 @@ class EngageFirestore {
       doc = await listRef.document(docId).get();
       $loading = false;
       if (doc.exists) {
-        dynamic fireDoc = this.addFire(doc.data, docId);
+        dynamic fireDoc = await this.addFire(doc.data, docId);
         num index = this.list.indexOf(fireDoc);
         if (index > -1) this.list[index] = fireDoc;
         else this.list.add(fireDoc);
@@ -461,7 +465,7 @@ class EngageFirestore {
     newDoc['\$timezoneOffset'] = DateTime.now().timeZoneOffset.toString();
     newDoc['\$id'] = blank.documentID;
     await blank.setData(newDoc.cast<String, dynamic>());
-    return this.addFire(newDoc, blank.documentID, ignoreInit: ignoreInit);
+    return await this.addFire(newDoc, blank.documentID, ignoreInit: ignoreInit);
   }
 
   Future<dynamic> setDoc(dynamic newDoc, {dynamic docRef}) async {
@@ -482,7 +486,7 @@ class EngageFirestore {
       newDoc['\$timezoneOffset'] = DateTime.now().timeZoneOffset.toString();
       await docRef.setData(newDoc.cast<String, dynamic>());
     }
-    return addFire(newDoc, newDoc['\$id'] ?? newDoc['id'] ?? docRef.documentID);
+    return await addFire(newDoc, newDoc['\$id'] ?? newDoc['id'] ?? docRef.documentID);
   }
 
   Future<dynamic> setWithId(String id, {dynamic newDoc}) async {
@@ -517,7 +521,7 @@ class EngageFirestore {
         documentRef = docRef.document(doc['\$id']);
         await documentRef.setData(doc.cast<String, dynamic>(), merge: true);
       }
-      return addFire(doc, documentRef.documentID);
+      return await addFire(doc, documentRef.documentID);
     } catch (error) {
       print('update error: $error');
       return doc;
@@ -559,20 +563,20 @@ class EngageFirestore {
     return listRef.document(id).delete();
   }
 
-  watch(String id, cb, [CollectionReference listRef]) {
-    listRef ??= ref;
-    listRef
-      .document(id)
-      .snapshots()
-      .listen((doc) => doc.exists ? cb(addFire(doc.data, doc.documentID), doc) : cb(null, doc));
-  }
+  // watch(String id, cb, [CollectionReference listRef]) {
+  //   listRef ??= ref;
+  //   listRef
+  //     .document(id)
+  //     .snapshots()
+  //     .listen((doc) => doc.exists ? cb(addFire(doc.data, doc.documentID), doc) : cb(null, doc));
+  // }
 
-  watchList(cb, [CollectionReference listRef]) {
-    listRef ??= ref;
-    listRef
-      .snapshots()
-      .listen((snapshot) => cb is List ? cb = addFireList(snapshot) : cb(addFireList(snapshot)));
-  }
+  // watchList(cb, [CollectionReference listRef]) {
+  //   listRef ??= ref;
+  //   listRef
+  //     .snapshots()
+  //     .listen((snapshot) => cb is List ? cb = addFireList(snapshot) : cb(addFireList(snapshot)));
+  // }
 
   Stream listen(cb, [CollectionReference listRef]) {
     listRef ??= ref;
@@ -610,7 +614,7 @@ class EngageFirestore {
       print('cant find record for: $oldId');
       return 'cant find record';
     }
-    data = this.addFire(data, newId);
+    data = await this.addFire(data, newId);
     await this.save(data);
     return await this.remove(oldId, ref);
   }
@@ -623,7 +627,7 @@ class EngageFirestore {
       print('cant find record for: $oldId');
       return 'cant find record';
     }
-    data = this.addFire(data, newId);
+    data = await this.addFire(data, newId);
     await this.save(data, listRef: subRef);
     return await this.remove(oldId, subRef);
   }

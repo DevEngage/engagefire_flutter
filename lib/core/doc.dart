@@ -44,7 +44,7 @@ class EngageDoc {
     if (!ignoreInit && path != null) $$setupDoc(path, data);
   }
 
-  factory EngageDoc.fromMap(Map data) {
+  factory EngageDoc.fromMap(Map data, { Map resolve }) {
     data = data ?? { };
     return EngageDoc(data: data);
   }
@@ -522,5 +522,56 @@ class EngageDoc {
   //   //   return EngageDoc.instances[path].options(options);
   //   // }
   //   return EngageDoc.instances[path];
+  // }
+
+
+  /* 
+    RELATIONS
+  */
+  
+  // get all the $* fields plus name
+  $addRelation(String relation, String relationId, {save = true}) {
+      // if (relation && relation[relation.length - 1].toLowerCase() === 's') {
+      //     relation = relation.slice(0, -1);
+      // }
+      var newDoc = {};
+      newDoc['${relation}Id'] = relationId;
+
+      this.$$updateDoc();
+      if (save) this.$save();
+  }
+
+  Future $getRelations({pure = false, String field}) async {
+    if ($doc[field] == null) {
+      return;
+    }
+    if ($doc[field] is String) {
+      $doc[field] = await EngageDoc.get(path: $doc[field]);
+    } else if ($doc[field] is List<String>) {
+      $doc[field] = await Future.wait($doc[field].map((item) => EngageDoc.get(path: item)).toList());
+    } else if ($doc[field] is List) {
+      // TODO: resolve object relations
+    }
+    return $doc[field];
+  }
+
+  // $getRelations({pure = false, String field}) async {
+  //     return 
+  // }
+
+  // // https://stackoverflow.com/questions/46568850/what-is-firestore-reference-data-type-good-for
+  // $addReference(ref: any, name: string, save = true) {
+  //     const newDoc = {};
+  //     newDoc[`${name}Ref`] = ref;
+  //     _.assign(this, newDoc);
+  //     this.$$updateDoc();
+  //     if (save) this.$save();
+  // }
+
+  // $getReferences(): string[] {
+  //     return Object
+  //         .keys(this.$doc)
+  //         .map(key => (key || '').length > 2 && (key || '').includes('Ref') ? key.replace('Ref', '') : '')
+  //         .filter(item => item !== '');
   // }
 }
