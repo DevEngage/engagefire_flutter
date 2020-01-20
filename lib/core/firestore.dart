@@ -152,6 +152,9 @@ class EngageFirestore {
         case 'isNull':
           queryRef = queryRef.where(field, isNull: value);
           break;
+        case 'orderBy':
+          queryRef = queryRef.orderBy(field, descending: value ?? false);
+          break;
       }
     });
     return queryRef;
