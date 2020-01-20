@@ -41,21 +41,21 @@ class EngageProvider extends EngageFirestore with ChangeNotifier {
     return result;
   }
 
-  @override
-  watchList(cb, [CollectionReference listRef]) {
-    return  super.watchList((snapshot) {
-      cb(snapshot);
-      notifyListeners();
-    }, listRef);
-  }
+  // @override
+  // watchList(cb, [CollectionReference listRef]) {
+  //   return  super.watchList((snapshot) {
+  //     cb(snapshot);
+  //     notifyListeners();
+  //   }, listRef);
+  // }
 
-  @override
-  watch(id, cb, [CollectionReference listRef]) {
-    return  super.watch(id, (doc, snapshot) {
-      cb(doc, snapshot);
-      notifyListeners();
-    }, listRef);
-  }
+  // @override
+  // watch(id, cb, [CollectionReference listRef]) {
+  //   return  super.watch(id, (doc, snapshot) {
+  //     cb(doc, snapshot);
+  //     notifyListeners();
+  //   }, listRef);
+  // }
   
   @override
   Future<EngageDoc> getOrCreate({dynamic defaultData, Map filter, String id}) async {
