@@ -255,7 +255,7 @@ class EngageFirestore {
     if (EngageDoc != null && data is Map) {
       var doc = EngageDoc(data: data, path: '$path/$id', ignoreInit: ignoreInit);
       if (resolve != null)  {
-        await Future.wait(resolve.map((item) => doc.$getRelations(field: item)));
+        await Future.wait(resolve.map((item) => doc.$getRelations(field: item)).toList());
       }
       return doc;
     }
