@@ -54,9 +54,12 @@ class EngageDoc {
     return EngageDoc(path: doc.reference.path, data: data, id: doc.documentID);
   }
 
-  static Future<EngageDoc> get({String path, Map data, Map defaultData, bool saveDefaults = false}) async {
+  static Future<EngageDoc> get({String path, Map data, Map defaultData, retrieve = true, bool saveDefaults = false}) async {
     EngageDoc doc = EngageDoc(ignoreInit: true);
     await doc.$$setupDoc(path, data);
+    if (retrieve) {
+      await doc.$get();
+    }
     String userId = await EngageAuth().currentUserId;
     if (defaultData != null) {
       if (doc.$setDefaults(defaultData, userId: userId)) {
