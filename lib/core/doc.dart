@@ -54,11 +54,11 @@ class EngageDoc {
     return EngageDoc(path: doc.reference.path, data: data, id: doc.documentID);
   }
 
-  static Future<EngageDoc> get({String path, Map data, Map defaultData, retrieve = true, bool saveDefaults = false}) async {
+  static Future<EngageDoc> get({String path, Map data, Map defaultData, retrieve = true, bool saveDefaults = false, List resolve}) async {
     EngageDoc doc = EngageDoc(ignoreInit: true);
     await doc.$$setupDoc(path, data);
     if (retrieve) {
-      await doc.$get();
+      await doc.$get(resolve: resolve);
     }
     String userId = await EngageAuth().currentUserId;
     if (defaultData != null) {
@@ -177,9 +177,12 @@ class EngageDoc {
     return $engageFireStore.update($doc);
   }
 
-  Future $get({updateDoc = true}) async {
+  Future $get({updateDoc = true, List resolve}) async {
     $loading = true;
     final data = await $engageFireStore.get($id, pure: true);
+    if (resolve != null) {
+      await $resolveAllRelations(resolve);
+    }
     if (updateDoc && data != null) {
       $doc = {...$doc, ...data, '\$collection': $collection, '\$id': $id};
     }
@@ -329,13 +332,13 @@ class EngageDoc {
     return EngageFirestore.getInstance("${$path}/$_collection", options: options);
   }
 
-  Stream<EngageDoc> $stream(String id) {
+  Stream<EngageDoc> $stream() {
     return $docRef
         .snapshots()
         .map((snap) => EngageDoc.fromMap(snap.data));
   }
 
-  Stream<EngageDoc> $streamData(String id) {
+  Stream<EngageDoc> $streamData() {
     return $docRef
         .snapshots()
         .map((snap) => snap.data);
@@ -560,6 +563,10 @@ class EngageDoc {
     $relations[field] = resolved;
     $doc[field] = resolved;
     return $doc[field];
+  }
+
+  Future $resolveAllRelations(List resolve) async {
+    return Future.wait(resolve.map((item) => $getRelations(field: item)).toList());
   }
 
   // $getRelations({pure = false, String field}) async {
