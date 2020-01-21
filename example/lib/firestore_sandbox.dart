@@ -23,6 +23,13 @@ class _FirestoreSandboxState extends State<FirestoreSandbox> {
     Future.delayed(Duration(seconds: 4), () async {
       print(await user.$subExists('favorites', 'group'));
     });
+    // getTestDocWithRelation();
+  }
+
+  Future getTestDocWithRelation() async {
+    var doc = await EngageDoc.get(path: 'tests/Gn4DfJhRzacUbFgXm3nR/deeping/JO9fbTqN5RDnRDl7bolm');
+    await doc.$getRelations();
+    print(doc.$relations);
   }
 
   @override

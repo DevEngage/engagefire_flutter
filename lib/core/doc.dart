@@ -549,7 +549,7 @@ class EngageDoc {
     if ($doc[field] is String) {
       resolved = await EngageDoc.get(path: $doc[field]);
     } else if ($doc[field] is List) {
-      resolved = await Future.wait($doc[field].map((item) => EngageDoc.get(path: item)).toList());
+      resolved = await Future.wait(List.from(List.from($doc[field]).map((item) => EngageDoc.get(path: item)).toList()));
     } 
     // else if ($doc[field] is List) {
     //   // TODO: resolve object relations
