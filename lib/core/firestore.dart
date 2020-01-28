@@ -123,7 +123,7 @@ class EngageFirestore {
     filter.forEach((key, value) {
       List<String> keys = key.split('.');
       String field = keys[0];
-      String type = keys[1];
+      String type = ksey[1];
       switch (type) {
         case 'isEqualTo':
           queryRef = queryRef.where(field, isEqualTo: value);
@@ -224,7 +224,7 @@ class EngageFirestore {
     return item.isEmpty ? null : item[0];
   }
 
-  Future<List> getList({CollectionReference listRef, Map filter, limit, updateStream = false, List resolve}) async {
+  Future<List> getList({CollectionReference listRef, Map filter, limit, updateStream = false, List resolve, wrapper}) async {
     $loading = true;
     dynamic query = await buildTemplateQuery(query: listRef ?? ref, filter: filter);
     if (limit != null) query.limit(limit);
@@ -586,7 +586,7 @@ class EngageFirestore {
     return listRef.snapshots().transform(transformer);
   }
 
-  Stream<dynamic> stream({filter, listRef, pure = false}) {
+  Stream<dynamic> stream({filter, listRef, pure = false, limit, wrapper}) {
     dynamic query = listRef ?? ref;
     if (filter != null) {
       filter.forEach((key, value) => filter[key] = getStringVar(value, userId: EngageAuth.user.uid));
@@ -594,12 +594,13 @@ class EngageFirestore {
     if (filter != null) {
       query = buildQuery(filter, query);
     }
+    if (limit != null) query.limit(limit);
     if (pure) {
       return query.snapshots().map((list) =>
         list.documents.map((doc) => doc.data).toList());
     }
     return query.snapshots().map((list) =>
-      list.documents.map((doc) => EngageDoc.fromFirestore(doc)).toList());
+      list.documents.map((doc) => wrapper != null ? wrapper(doc) : EngageDoc.fromFirestore(doc)).toList());
   }
 
   /*

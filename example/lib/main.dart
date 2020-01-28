@@ -1,3 +1,5 @@
+import 'package:engagefire/core/model.dart';
+import 'package:engagefire/core/service.dart';
 import 'package:engagefire/mobile.dart';
 import 'package:engagefire/mobile/builders/formBuilder.dart';
 import 'package:engagefire/mobile/screens/login.dart';
@@ -17,6 +19,13 @@ void main() async {
     projectID: 'engage-firebase',
     storageBucket: 'engage-firebase.appspot.com',
   );
+  await EngageService.addServices([
+    EngageService<EngageModel>(
+      name: 'users',
+      path: 'users',
+      wrapper: EngageDoc,
+    )
+  ]);
   runApp(MyApp());
 }
 

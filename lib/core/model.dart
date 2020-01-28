@@ -1,29 +1,72 @@
+import 'package:engagefire/mobile.dart';
 
+/* 
+  TODO:
+  [ ] detault functionality
+  [ ] fields
+  [ ] form builder
+  [ ] 
 
-class EngageModel {
-  static Map<String, EngageModel> instances = {};
-  String path;
-  EngageModel(this.path) {
-    if (EngageModel.instances[path] == null)  {
-      EngageModel.instances[path] = this;
+  {
+    name: 'userCollection',
+    defaultId: 'jlkasdhf893',
+    templateName: '{userId}'
+    class: UserModel,
+    path: 'users/userId/collection',
+    stream: true,
+    preload: true,
+    filters: {
+      name: 'filter'
+    },
+    resolve: {
+      
+    },
+
+    // v2
+    fields: [
+      {
+        name: '',
+        default: '',
+        relation: '',
+
+      }
+    ]
+  }
+
+ */
+
+class EngageModel extends EngageDoc {
+  String $name;
+  bool $enableStream;
+  bool $preload;
+  bool $preload;
+  // List fields;
+  // String $defaultId;
+  // String $templateName;
+  
+  EngageModel({
+    name,
+    path,
+    enableStream,
+    preload,
+    // this.defaultId,
+    // this.templateName,
+  }): super(path: path) {
+    $name = name;
+    $enableStream = enableStream;
+    $preload = preload;
+  }
+
+  Future $load() async {
+    if ($enableStream) {
+
     }
-  }
-
-  addModel() {
-
-  }
-
-  addSubCollection(_path) {
-    
-  }
-
-  static getInstance(
-    String path
-  ) {
-    if (EngageModel.instances[path] == null)  {
-      EngageModel.instances[path] = EngageModel(path);
+    if (preload) {
+      
     }
-    return EngageModel.instances[path];
+    return 
   }
+
+  
 
 }
