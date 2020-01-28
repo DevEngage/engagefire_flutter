@@ -24,7 +24,7 @@ void main() async {
       name: 'users',
       path: 'users',
       wrapper: EngageDoc,
-    )
+    ),
   ]);
   runApp(MyApp());
 }
