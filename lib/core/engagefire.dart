@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:engagefire/core/ads.dart';
 import 'package:engagefire/core/files.dart';
 import 'package:engagefire/core/pubsub.dart';
+import 'package:engagefire/core/service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
@@ -16,7 +17,7 @@ class EngageFire {
   static EngageFiles _storage;
   static EngageAds _ads;
 
-  EngageFire() {}
+  EngageFire();
 
   static Future<FirebaseApp> init({ 
     String name, 
