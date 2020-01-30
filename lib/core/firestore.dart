@@ -123,7 +123,7 @@ class EngageFirestore {
     filter.forEach((key, value) {
       List<String> keys = key.split('.');
       String field = keys[0];
-      String type = ksey[1];
+      String type = keys[1];
       switch (type) {
         case 'isEqualTo':
           queryRef = queryRef.where(field, isEqualTo: value);
