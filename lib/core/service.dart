@@ -43,6 +43,7 @@ class EngageService<T> extends EngageFirestore {
     this.wrapper = EngageDoc,
     this.enableStream,
     this.preloadList,
+    this.filters,
     this.defaults,
     this.limit,
   }): super(path);

@@ -39,7 +39,6 @@ class EngageModel extends EngageDoc {
   String $name;
   bool $enableStream;
   bool $preload;
-  bool $preload;
   // List fields;
   // String $defaultId;
   // String $templateName;

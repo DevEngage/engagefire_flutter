@@ -20,9 +20,15 @@ void main() async {
     storageBucket: 'engage-firebase.appspot.com',
   );
   await EngageService.addServices([
-    EngageService<EngageModel>(
+    EngageService<EngageDoc>(
       name: 'users',
       path: 'users',
+      // filters: EngageFilter(
+      //   name: '',
+      //   filter: {
+      //     '': ''
+      //   }
+      // ),
       wrapper: EngageDoc,
     ),
   ]);
