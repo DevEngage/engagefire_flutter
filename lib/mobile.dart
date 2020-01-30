@@ -12,4 +12,5 @@ export 'core/files.dart';
 export 'core/firestore.dart';
 export 'core/provider.dart';
 export 'core/pubsub.dart';
+export 'core/service.dart';
 export 'core/state.dart';

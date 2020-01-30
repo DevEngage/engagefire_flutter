@@ -1,4 +1,3 @@
-import 'package:engagefire/core/model.dart';
 import 'package:engagefire/core/service.dart';
 import 'package:engagefire/mobile.dart';
 import 'package:engagefire/mobile/builders/formBuilder.dart';
