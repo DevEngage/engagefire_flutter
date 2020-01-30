@@ -11,8 +11,10 @@ class EngageAuth {
     scopes: [
       'email',
       'profile',
-      // 'https://www.googleapis.com/auth/contacts.readonly',
+      'https://www.googleapis.com/auth/contacts.readonly',
     ],
+    hostedDomain: '',
+    clientId: '',
   );
 
   EngageAuth() {}
