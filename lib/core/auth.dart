@@ -13,8 +13,8 @@ class EngageAuth {
       'profile',
       'https://www.googleapis.com/auth/contacts.readonly',
     ],
-    hostedDomain: '',
-    clientId: '',
+    // hostedDomain: '',
+    // clientId: '',
   );
 
   EngageAuth() {}
