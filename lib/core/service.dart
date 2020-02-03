@@ -65,7 +65,7 @@ class EngageService<T> extends EngageFirestore {
   static Map<String, EngageService> $services;
 
   static Future addServices(List<EngageService> services) async {
-    List<Future> list = services.map((dynamic service) => service.load());
+    List<Future> list = services.map((dynamic service) => service.load()).toList();
     await Future.wait(list);
     services.forEach((item) => EngageService.$services[item.name] = item);
     return $services;
