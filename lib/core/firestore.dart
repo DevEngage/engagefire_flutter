@@ -89,6 +89,12 @@ class EngageFirestore {
     return EngageFirestore.instances[path];
   }
 
+  static getInstanceItem(
+    String path, String id
+  ) {
+    return EngageFirestore.instances[path].list.firstWhere((item) => item.$id == id || item.id == id);
+  }
+
   Future<List> getModelFromDb() async {
     if (path.contains('\$collections')) {
       return this.model = [];
