@@ -80,7 +80,7 @@ class _EngageLoginScreenState extends State<EngageLoginScreen> with TickerProvid
     if (name.toLowerCase() == 'google') {
       var user = await auth.googleSignIn();
       if (user != null) goNext();
-    } else if (name.toLowerCase() == widget.anonymousText) {
+    } else if (name.toLowerCase() == widget.anonymousText.toLowerCase()) {
       var user = await auth.anonLogin();
       if (user != null) goNext();
     }
