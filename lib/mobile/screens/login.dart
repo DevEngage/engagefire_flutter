@@ -13,6 +13,10 @@ class EngageLoginScreen extends StatefulWidget {
   bool google = false;
   bool twitter = false;
   bool facebook = false;
+  bool anonymous = false;
+  String socialMessage;
+  String anonymousText;
+  bool autoLogin = false;
   String loggedInPage = '/home';
   EngageLoginScreen({
     Key key, 
@@ -26,6 +30,10 @@ class EngageLoginScreen extends StatefulWidget {
     this.twitter = false,
     this.facebook = false,
     this.loggedInPage = '/home',
+    this.anonymous = false,
+    this.anonymousText = 'Skip',
+    this.socialMessage = '',
+    this.autoLogin = false
     }) : super(key: key);
 
   @override
@@ -72,6 +80,9 @@ class _EngageLoginScreenState extends State<EngageLoginScreen> with TickerProvid
     if (name.toLowerCase() == 'google') {
       var user = await auth.googleSignIn();
       if (user != null) goNext();
+    } else if (name.toLowerCase() == widget.anonymousText) {
+      var user = await auth.anonLogin();
+      if (user != null) goNext();
     }
   }
 
@@ -104,7 +115,7 @@ class _EngageLoginScreenState extends State<EngageLoginScreen> with TickerProvid
                             mainAxisAlignment:
                                 socialCount < 2 ? MainAxisAlignment.center : MainAxisAlignment.spaceEvenly,
                             children: <Widget>[
-                              Icon(
+                              if (icon != null) Icon(
                                 IconData(icon, fontFamily: 'icomoon'),
                                 color: Colors.white,
                                 size: 15.0,
@@ -140,6 +151,9 @@ class _EngageLoginScreenState extends State<EngageLoginScreen> with TickerProvid
           if (widget.google) SocialButton('GOOGLE', 0xea88, Color(0XffFC5345)),
           if (widget.facebook) SocialButton('FACEBOOK', 0xea90, Color(0Xff4C76BE)),
           if (widget.twitter) SocialButton('TWITTER', 0xea96, Color(0Xff00C7FF)),
+          if (widget.anonymous) SocialButton(widget.anonymousText, null, Colors.black54),
+          if (widget.socialMessage != null) 
+            Center(child: Text(widget.socialMessage)),
         ],
       ),
     );
